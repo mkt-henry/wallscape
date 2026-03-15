@@ -160,7 +160,8 @@ export function KakaoMap() {
   useEffect(() => {
     if (!isKakaoLoaded || !mapInstanceRef.current) return
     const kakao = window.kakao
-    const map = mapInstanceRef.current as ReturnType<typeof kakao.maps.Map>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const map = mapInstanceRef.current as any
     map.setCenter(new kakao.maps.LatLng(center.lat, center.lng))
   }, [center, isKakaoLoaded])
 
@@ -169,11 +170,12 @@ export function KakaoMap() {
     if (!isKakaoLoaded || !mapInstanceRef.current || !nearbyPosts) return
 
     const kakao = window.kakao
-    const map = mapInstanceRef.current as ReturnType<typeof kakao.maps.Map>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const map = mapInstanceRef.current as any
 
     // Clear existing overlays
     overlaysRef.current.forEach((overlay) => {
-      (overlay as ReturnType<typeof kakao.maps.CustomOverlay>).setMap(null)
+      (overlay as any).setMap(null) // eslint-disable-line @typescript-eslint/no-explicit-any
     })
     overlaysRef.current.clear()
 
@@ -203,7 +205,8 @@ export function KakaoMap() {
     if (!isKakaoLoaded || !mapInstanceRef.current || !location) return
 
     const kakao = window.kakao
-    const map = mapInstanceRef.current as ReturnType<typeof kakao.maps.Map>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const map = mapInstanceRef.current as any
 
     const content = document.createElement('div')
     content.innerHTML = `

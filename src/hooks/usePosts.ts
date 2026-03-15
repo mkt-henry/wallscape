@@ -106,10 +106,11 @@ export function useInfiniteFeed(params: FeedParams) {
 
       if (error) throw error
 
-      const posts = (data || []).map((p) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const posts = ((data || []) as any[]).map((p) => ({
         ...p,
-        is_liked: user ? (p.likes as { user_id: string }[])?.some((l) => l.user_id === user.id) : false,
-        is_bookmarked: user ? (p.bookmarks as { user_id: string }[])?.some((b) => b.user_id === user.id) : false,
+        is_liked: user ? (p.likes as { user_id: string }[] | undefined)?.some((l) => l.user_id === user.id) ?? false : false,
+        is_bookmarked: user ? (p.bookmarks as { user_id: string }[] | undefined)?.some((b) => b.user_id === user.id) ?? false : false,
       })) as PostWithUser[]
 
       const hasMore = posts.length === LIMIT
@@ -143,10 +144,12 @@ export function usePost(id: string) {
 
       if (error) throw error
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const d = data as any
       return {
-        ...data,
-        is_liked: user ? (data.likes as { user_id: string }[])?.some((l) => l.user_id === user.id) : false,
-        is_bookmarked: user ? (data.bookmarks as { user_id: string }[])?.some((b) => b.user_id === user.id) : false,
+        ...d,
+        is_liked: user ? (d.likes as { user_id: string }[] | undefined)?.some((l) => l.user_id === user.id) ?? false : false,
+        is_bookmarked: user ? (d.bookmarks as { user_id: string }[] | undefined)?.some((b) => b.user_id === user.id) ?? false : false,
       } as PostWithUser
     },
     enabled: !!id,
@@ -173,10 +176,11 @@ export function useUserPosts(userId: string) {
 
       if (error) throw error
 
-      return (data || []).map((p) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return ((data || []) as any[]).map((p) => ({
         ...p,
-        is_liked: user ? (p.likes as { user_id: string }[])?.some((l) => l.user_id === user.id) : false,
-        is_bookmarked: user ? (p.bookmarks as { user_id: string }[])?.some((b) => b.user_id === user.id) : false,
+        is_liked: user ? (p.likes as { user_id: string }[] | undefined)?.some((l) => l.user_id === user.id) ?? false : false,
+        is_bookmarked: user ? (p.bookmarks as { user_id: string }[] | undefined)?.some((b) => b.user_id === user.id) ?? false : false,
       })) as PostWithUser[]
     },
     enabled: !!userId,
