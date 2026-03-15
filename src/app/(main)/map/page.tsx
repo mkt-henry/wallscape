@@ -68,7 +68,7 @@ function MapContent() {
       </div>
 
       {/* Map controls */}
-      <div className="absolute right-4 bottom-[calc(80px+env(safe-area-inset-bottom))] z-10 flex flex-col gap-2">
+      <div className="absolute right-4 bottom-[calc(80px+env(safe-area-inset-bottom))] md:bottom-6 z-10 flex flex-col gap-2">
         {/* Layer toggle */}
         <button className="w-12 h-12 glass rounded-2xl flex items-center justify-center tap-highlight-none shadow-card">
           <Layers size={20} className="text-white" />
@@ -88,7 +88,7 @@ function MapContent() {
       </div>
 
       {/* Post count overlay */}
-      <div className="absolute left-4 bottom-[calc(80px+env(safe-area-inset-bottom))] z-10">
+      <div className="absolute left-4 bottom-[calc(80px+env(safe-area-inset-bottom))] md:bottom-6 z-10">
         <div className="glass rounded-2xl px-4 py-2 shadow-card">
           <p className="text-white text-xs font-semibold">이 지역 게시물</p>
           <p className="text-primary text-lg font-black leading-tight">-</p>

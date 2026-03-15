@@ -60,21 +60,14 @@ export default function FeedPage() {
   const posts = data?.pages.flatMap((page) => page.data) ?? []
 
   const handleLoadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage()
-    }
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  // Infinite scroll via IntersectionObserver
   const sentinelRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (!node) return
       const observer = new IntersectionObserver(
-        (entries) => {
-          if (entries[0].isIntersecting) {
-            handleLoadMore()
-          }
-        },
+        (entries) => { if (entries[0].isIntersecting) handleLoadMore() },
         { threshold: 0.1 }
       )
       observer.observe(node)
@@ -85,75 +78,72 @@ export default function FeedPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Top bar */}
-      <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-md pt-safe-top">
-        <div className="flex items-center justify-between px-4 h-14">
-          {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center">
-              <span className="text-sm font-black text-white">W</span>
+      {/* Top bar — mobile only logo, desktop shows only tabs + actions */}
+      <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-md pt-safe-top border-b border-border/40">
+        <div className="max-w-3xl mx-auto px-4">
+          {/* Mobile: logo row */}
+          <div className="flex items-center justify-between h-14 md:hidden">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center">
+                <span className="text-sm font-black text-white">W</span>
+              </div>
+              <span className="text-lg font-black text-white tracking-wide">WALLSCAPE</span>
             </div>
-            <span className="text-lg font-black text-white tracking-wide">WALLSCAPE</span>
+            <div className="flex items-center gap-1">
+              <Link href="/search" className="p-2 tap-highlight-none">
+                <Search size={22} className="text-white" />
+              </Link>
+              <Link href="/activity" className="p-2 tap-highlight-none relative">
+                <Bell size={22} className="text-white" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
+              </Link>
+            </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-1">
-            <Link
-              href="/search"
-              className="p-2 tap-highlight-none"
-            >
-              <Search size={22} className="text-white" />
-            </Link>
-            <Link
-              href="/activity"
-              className="p-2 tap-highlight-none relative"
-            >
-              <Bell size={22} className="text-white" />
-              {/* Notification dot */}
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
-            </Link>
+          {/* Desktop: title + actions row */}
+          <div className="hidden md:flex items-center justify-between h-14">
+            <h1 className="text-xl font-black text-white">피드</h1>
+            <div className="flex items-center gap-1">
+              <Link href="/search" className="p-2 tap-highlight-none rounded-xl hover:bg-surface-2 transition-colors">
+                <Search size={20} className="text-text-secondary" />
+              </Link>
+              <Link href="/activity" className="p-2 tap-highlight-none relative rounded-xl hover:bg-surface-2 transition-colors">
+                <Bell size={20} className="text-text-secondary" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
+              </Link>
+            </div>
           </div>
-        </div>
 
-        {/* Tab bar */}
-        <div className="flex items-center gap-1 px-4 pb-3 overflow-x-auto scrollbar-hide">
-          {FEED_TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={cn(
-                'flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 tap-highlight-none',
-                activeTab === tab.key
-                  ? 'bg-primary text-white shadow-glow-primary'
-                  : 'bg-surface-2 text-text-secondary hover:bg-surface-3'
-              )}
-            >
-              {tab.label}
-              {tab.key === 'nearby' && !location && (
-                <span className="ml-1.5 text-xs opacity-60">📍</span>
-              )}
-            </button>
-          ))}
+          {/* Tab bar */}
+          <div className="flex items-center gap-1 pb-3 overflow-x-auto scrollbar-hide">
+            {FEED_TABS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={cn(
+                  'flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 tap-highlight-none',
+                  activeTab === tab.key
+                    ? 'bg-primary text-white shadow-glow-primary'
+                    : 'bg-surface-2 text-text-secondary hover:bg-surface-3'
+                )}
+              >
+                {tab.label}
+                {tab.key === 'nearby' && !location && (
+                  <span className="ml-1.5 text-xs opacity-60">📍</span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Feed content */}
-      <div className="flex-1 px-4 pt-2 pb-4 space-y-4">
+      <div className="flex-1 max-w-3xl mx-auto w-full px-4 pt-4 pb-6">
         {/* Error state */}
         {isError && (
           <div className="py-16 flex flex-col items-center gap-4">
-            <p className="text-text-secondary text-center">
-              피드를 불러오는 중 오류가 발생했습니다
-            </p>
-            {process.env.NODE_ENV === 'development' && (
-              <p className="text-xs text-red-400 text-center px-4 break-all">
-                {String((data as unknown as { error?: unknown } | undefined)?.error ?? '') || '콘솔을 확인하세요'}
-              </p>
-            )}
-            <button
-              onClick={() => refetch()}
-              className="text-primary font-semibold tap-highlight-none"
-            >
+            <p className="text-text-secondary text-center">피드를 불러오는 중 오류가 발생했습니다</p>
+            <button onClick={() => refetch()} className="text-primary font-semibold tap-highlight-none">
               다시 시도
             </button>
           </div>
@@ -161,14 +151,12 @@ export default function FeedPage() {
 
         {/* Loading skeletons */}
         {isLoading && (
-          <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <PostSkeleton key={i} />
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => <PostSkeleton key={i} />)}
           </div>
         )}
 
-        {/* Posts */}
+        {/* Empty state */}
         {!isLoading && posts.length === 0 && !isError && (
           <div className="py-20 flex flex-col items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-surface-2 flex items-center justify-center">
@@ -185,23 +173,24 @@ export default function FeedPage() {
           </div>
         )}
 
-        {posts.map((post) => (
-          <PostCard key={post.id} post={post} />
-        ))}
-
-        {/* Load more sentinel */}
-        {!isLoading && hasNextPage && (
-          <div ref={sentinelRef} className="h-4" />
+        {/* Posts grid */}
+        {posts.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {posts.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
+          </div>
         )}
 
-        {/* Loading more indicator */}
+        {/* Sentinel */}
+        {!isLoading && hasNextPage && <div ref={sentinelRef} className="h-4 mt-4" />}
+
         {isFetchingNextPage && (
-          <div className="flex justify-center py-4">
+          <div className="flex justify-center py-6">
             <div className="loader" />
           </div>
         )}
 
-        {/* End of feed */}
         {!isLoading && !hasNextPage && posts.length > 0 && (
           <div className="py-8 text-center">
             <p className="text-text-muted text-sm">모든 게시물을 확인했습니다</p>

@@ -29,7 +29,7 @@ export function BottomNavBar() {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
       {/* Blur backdrop */}
       <div className="absolute inset-0 bg-background/85 backdrop-blur-md border-t border-border/50" />
 

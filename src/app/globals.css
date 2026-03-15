@@ -368,6 +368,18 @@ button:disabled {
   overflow-y: auto;
 }
 
+@media (min-width: 768px) {
+  .bottom-sheet-content {
+    left: 4rem; /* offset for md sidebar (w-16) */
+  }
+}
+
+@media (min-width: 1024px) {
+  .bottom-sheet-content {
+    left: 14rem; /* offset for lg sidebar (w-56) */
+  }
+}
+
 /* ============================================================
    Transitions
    ============================================================ */

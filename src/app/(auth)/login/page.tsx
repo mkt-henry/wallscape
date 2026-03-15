@@ -7,7 +7,17 @@ import { Eye, EyeOff, ArrowLeft, Mail } from 'lucide-react'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { cn } from '@/lib/utils'
+
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+      <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+      <path d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z" fill="#FBBC05"/>
+      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.96L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+    </svg>
+  )
+}
 
 function LoginForm() {
   const router = useRouter()
@@ -18,6 +28,7 @@ function LoginForm() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isSocialLoading, setIsSocialLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const supabase = getSupabaseClient()
@@ -54,23 +65,21 @@ function LoginForm() {
     }
   }
 
-  const handleSocialLogin = async (provider: 'google' | 'kakao' | 'apple') => {
-    setIsLoading(true)
+  const handleGoogleLogin = async () => {
+    setIsSocialLoading(true)
     setError(null)
-
     try {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: provider === 'kakao' ? 'kakao' : provider,
+        provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?redirectTo=${redirectTo}`,
-          scopes: provider === 'google' ? 'email profile' : undefined,
+          redirectTo: `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
         },
       })
-
-      if (error) throw error
+      if (error) setError(error.message)
     } catch {
-      setError('소셜 로그인 중 오류가 발생했습니다.')
-      setIsLoading(false)
+      setError('Google 로그인 중 오류가 발생했습니다.')
+    } finally {
+      setIsSocialLoading(false)
     }
   }
 
@@ -106,8 +115,25 @@ function LoginForm() {
           </div>
         )}
 
+        {/* Google login */}
+        <button
+          onClick={handleGoogleLogin}
+          disabled={isSocialLoading || isLoading}
+          className="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-2xl bg-white text-[#1f1f1f] text-sm font-medium transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed tap-highlight-none hover:bg-gray-100 mb-6"
+        >
+          <GoogleIcon />
+          {isSocialLoading ? '로그인 중...' : 'Google로 계속하기'}
+        </button>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-text-muted text-xs">또는 이메일로 로그인</span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+
         {/* Email form */}
-        <form onSubmit={handleEmailLogin} className="space-y-4 mb-6">
+        <form onSubmit={handleEmailLogin} className="space-y-4">
           <Input
             type="email"
             placeholder="이메일"
@@ -157,79 +183,12 @@ function LoginForm() {
             fullWidth
             size="lg"
             isLoading={isLoading}
-            disabled={!email || !password}
+            disabled={!email || !password || isSocialLoading}
           >
             로그인
           </Button>
         </form>
 
-        {/* Divider */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="flex-1 h-px bg-border" />
-          <span className="text-text-muted text-xs">또는</span>
-          <div className="flex-1 h-px bg-border" />
-        </div>
-
-        {/* Social login */}
-        <div className="space-y-3">
-          {/* Google */}
-          <SocialButton
-            onClick={() => handleSocialLogin('google')}
-            disabled={isLoading}
-            icon={
-              <svg viewBox="0 0 24 24" className="w-5 h-5">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                />
-              </svg>
-            }
-            label="Google로 계속하기"
-          />
-
-          {/* Kakao */}
-          <SocialButton
-            onClick={() => handleSocialLogin('kakao')}
-            disabled={isLoading}
-            icon={
-              <div className="w-5 h-5 bg-[#FEE500] rounded flex items-center justify-center">
-                <svg viewBox="0 0 24 24" className="w-3.5 h-3.5">
-                  <path
-                    fill="#3A1D1D"
-                    d="M12 3C6.48 3 2 6.48 2 10.8c0 2.72 1.59 5.12 4 6.61v3.59l3.6-2.07c.78.14 1.58.21 2.4.21 5.52 0 10-3.48 10-7.8S17.52 3 12 3z"
-                  />
-                </svg>
-              </div>
-            }
-            label="카카오로 계속하기"
-            style="kakao"
-          />
-
-          {/* Apple */}
-          <SocialButton
-            onClick={() => handleSocialLogin('apple')}
-            disabled={isLoading}
-            icon={
-              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
-                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
-              </svg>
-            }
-            label="Apple로 계속하기"
-            style="apple"
-          />
-        </div>
       </div>
 
       {/* Guest browse */}
@@ -258,42 +217,6 @@ function LoginForm() {
   )
 }
 
-interface SocialButtonProps {
-  onClick: () => void
-  disabled?: boolean
-  icon: React.ReactNode
-  label: string
-  style?: 'default' | 'kakao' | 'apple'
-}
-
-function SocialButton({
-  onClick,
-  disabled,
-  icon,
-  label,
-  style = 'default',
-}: SocialButtonProps) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        'w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-2xl',
-        'text-sm font-medium transition-all duration-200 active:scale-95',
-        'disabled:opacity-50 disabled:cursor-not-allowed tap-highlight-none',
-        style === 'kakao' &&
-          'bg-[#FEE500] text-[#3A1D1D] hover:bg-[#FFD700]',
-        style === 'apple' &&
-          'bg-white text-black hover:bg-gray-100',
-        style === 'default' &&
-          'bg-surface-2 text-white border border-border hover:bg-surface-3'
-      )}
-    >
-      {icon}
-      {label}
-    </button>
-  )
-}
 
 export default function LoginPage() {
   return (
