@@ -73,7 +73,7 @@ export function ProfileView({ username, isOwnProfile }: ProfileViewProps) {
           bookmarks(user_id)
         `)
         .eq('user_id', profile.id)
-        .eq('status', 'public')
+        .neq('visibility', 'private')
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -394,11 +394,10 @@ function ArchivedGridItem({
   post: PostWithUser
   onUnarchive: () => void
 }) {
-  const archivedAt = post.archived_at ? new Date(post.archived_at) : null
+  // updated_at is set when post is archived (visibility changed to 'private')
+  const archivedAt = new Date(post.updated_at)
   const now = new Date()
-  const daysArchived = archivedAt
-    ? Math.floor((now.getTime() - archivedAt.getTime()) / (1000 * 60 * 60 * 24))
-    : 0
+  const daysArchived = Math.floor((now.getTime() - archivedAt.getTime()) / (1000 * 60 * 60 * 24))
   const daysLeft = Math.max(0, 30 - daysArchived)
   const isExpiringSoon = daysLeft <= 7
 

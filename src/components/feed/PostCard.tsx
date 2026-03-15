@@ -241,10 +241,10 @@ export function PostCard({ post, showLocation = true, priority = false }: PostCa
           title="게시물 옵션"
           options={[
             {
-              icon: post.status === 'archived' ? <EyeOff size={20} /> : <Archive size={20} />,
-              label: post.status === 'archived' ? '공개로 전환' : '보관하기',
+              icon: post.visibility === 'private' ? <EyeOff size={20} /> : <Archive size={20} />,
+              label: post.visibility === 'private' ? '공개로 전환' : '보관하기',
               onClick: () =>
-                archivePost({ postId: post.id, isArchived: post.status === 'archived' }),
+                archivePost({ postId: post.id, isArchived: post.visibility === 'private' }),
             },
           ]}
         />
