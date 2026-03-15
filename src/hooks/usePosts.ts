@@ -257,6 +257,8 @@ export function useBookmarkPost() {
     },
     onMutate: async ({ postId, isBookmarked }) => {
       await queryClient.cancelQueries({ queryKey: postKeys.detail(postId) })
+
+      // Optimistic update — detail cache
       const previous = queryClient.getQueryData<PostWithUser>(postKeys.detail(postId))
       if (previous) {
         queryClient.setQueryData<PostWithUser>(postKeys.detail(postId), {
@@ -265,6 +267,26 @@ export function useBookmarkPost() {
           bookmark_count: isBookmarked ? previous.bookmark_count - 1 : previous.bookmark_count + 1,
         })
       }
+
+      // Optimistic update — feed cache
+      queryClient.setQueriesData<{ pages: { data: PostWithUser[] }[]; pageParams: unknown[] }>(
+        { queryKey: ['posts', 'feed'], exact: false },
+        (old) => {
+          if (!old) return old
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              data: page.data.map((p) =>
+                p.id === postId
+                  ? { ...p, is_bookmarked: !isBookmarked, bookmark_count: isBookmarked ? p.bookmark_count - 1 : p.bookmark_count + 1 }
+                  : p
+              ),
+            })),
+          }
+        }
+      )
+
       return { previous }
     },
     onError: (_, { postId }, context) => {
