@@ -2,12 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Map, PlusSquare, Bell, User } from 'lucide-react'
+import { Home, Map, PlusSquare, Bell, User, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
   href: string
-  icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>
+  icon: LucideIcon
   label: string
   isUpload?: boolean
 }
