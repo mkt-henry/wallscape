@@ -143,6 +143,9 @@ export default function FeedPage() {
         {isError && (
           <div className="py-16 flex flex-col items-center gap-4">
             <p className="text-text-secondary text-center">피드를 불러오는 중 오류가 발생했습니다</p>
+            <p className="text-red-400 text-xs text-center max-w-xs break-all">
+              {(isError as unknown as Error)?.message ?? String(isError)}
+            </p>
             <button onClick={() => refetch()} className="text-primary font-semibold tap-highlight-none">
               다시 시도
             </button>
