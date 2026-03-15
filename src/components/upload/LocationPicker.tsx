@@ -37,19 +37,10 @@ async function searchAddress(query: string): Promise<AddressResult[]> {
 }
 
 async function reverseGeocode(lat: number, lng: number): Promise<string> {
-  const appKey = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY
-  if (!appKey) return `${lat.toFixed(5)}, ${lng.toFixed(5)}`
-
   try {
-    const res = await fetch(
-      `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${lng}&y=${lat}&input_coord=WGS84`,
-      {
-        headers: { Authorization: `KakaoAK ${appKey}` },
-      }
-    )
+    const res = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`)
     const data = await res.json()
-    const doc = data.documents?.[0]
-    return doc?.road_address?.address_name || doc?.address?.address_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`
+    return data.address || `${lat.toFixed(5)}, ${lng.toFixed(5)}`
   } catch {
     return `${lat.toFixed(5)}, ${lng.toFixed(5)}`
   }

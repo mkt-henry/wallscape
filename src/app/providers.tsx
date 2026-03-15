@@ -64,25 +64,29 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     // INITIAL_SESSION fires immediately with the current session state
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
 
-      if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-
-        if (profile) setProfile(profile as Profile)
-      } else if (event === 'SIGNED_OUT') {
-        reset()
-      }
-
-      // Mark initialized after first event (INITIAL_SESSION always fires first)
+      // Unblock the app immediately on first event
       if (event === 'INITIAL_SESSION') {
         setLoading(false)
         setInitialized(true)
+      } else if (event === 'SIGNED_OUT') {
+        reset()
+        return
+      }
+
+      // Fetch profile in background — don't await so it never blocks the client
+      if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && session?.user) {
+        const userId = session.user.id
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single()
+          .then(({ data: profile }) => {
+            if (profile) setProfile(profile as Profile)
+          })
       }
     })
 

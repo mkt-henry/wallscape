@@ -179,8 +179,8 @@ export default function FeedPage() {
         {/* Posts grid */}
         {posts.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {posts.map((post) => (
-              <PostCard key={post.id} post={post} />
+            {posts.map((post, i) => (
+              <PostCard key={post.id} post={post} priority={i < 2} />
             ))}
           </div>
         )}

@@ -13,11 +13,13 @@ import type { PostWithUser } from '@/types'
 interface PostCardProps {
   post: PostWithUser
   showLocation?: boolean
+  priority?: boolean
 }
 
-export function PostCard({ post, showLocation = true }: PostCardProps) {
+export function PostCard({ post, showLocation = true, priority = false }: PostCardProps) {
   const { user } = useAuthStore()
   const [isImageLoaded, setIsImageLoaded] = useState(false)
+  const [imageError, setImageError] = useState(false)
   const [doubleTapTimer, setDoubleTapTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
   const [showHeartAnim, setShowHeartAnim] = useState(false)
 
@@ -83,19 +85,27 @@ export function PostCard({ post, showLocation = true }: PostCardProps) {
           className="relative w-full aspect-square bg-surface-2"
           onClick={handleImageDoubleTap}
         >
-          {!isImageLoaded && <div className="absolute inset-0 skeleton" />}
+          {!isImageLoaded && !imageError && <div className="absolute inset-0 skeleton" />}
 
-          <Image
-            src={post.image_url}
-            alt={post.title}
-            fill
-            className={cn(
-              'object-cover transition-opacity duration-300',
-              isImageLoaded ? 'opacity-100' : 'opacity-0'
-            )}
-            sizes="(max-width: 768px) 100vw, 600px"
-            onLoad={() => setIsImageLoaded(true)}
-          />
+          {imageError ? (
+            <div className="absolute inset-0 bg-surface-2 flex items-center justify-center">
+              <span className="text-4xl">🎨</span>
+            </div>
+          ) : (
+            <Image
+              src={post.image_url}
+              alt={post.title}
+              fill
+              priority={priority}
+              className={cn(
+                'object-cover transition-opacity duration-300',
+                isImageLoaded ? 'opacity-100' : 'opacity-0'
+              )}
+              sizes="(max-width: 768px) 100vw, 600px"
+              onLoad={() => setIsImageLoaded(true)}
+              onError={() => { setImageError(true); setIsImageLoaded(true) }}
+            />
+          )}
 
           {/* Multiple images badge */}
           {post.image_urls?.length > 1 && (

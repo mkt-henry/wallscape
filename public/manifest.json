@@ -1,0 +1,17 @@
+{
+  "name": "Wallscape",
+  "short_name": "Wallscape",
+  "description": "국내 위치 기반 스트릿 아트 SNS",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}

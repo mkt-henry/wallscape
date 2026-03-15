@@ -116,6 +116,7 @@ export function useInfiniteFeed(params: FeedParams) {
     },
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
+    maxPages: 5,       // 최대 50개(5페이지×10) 메모리 유지
     staleTime: 30_000,
   })
 }
