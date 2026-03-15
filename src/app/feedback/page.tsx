@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Mail, Clock, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react'
-import { getSupabaseClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -95,20 +94,24 @@ export default function FeedbackPage() {
     setErrorMessage('')
 
     try {
-      const supabase = getSupabaseClient()
-      const { error } = await supabase.from('feedback').insert({
-        name: form.name.trim(),
-        email: form.email.trim(),
-        type: form.type,
-        message: form.message.trim(),
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          type: form.type,
+          message: form.message.trim(),
+        }),
       })
 
-      if (error) throw error
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? '알 수 없는 오류')
 
       setSubmitStatus('success')
     } catch (err) {
       console.error('Feedback submit error:', err)
-      setErrorMessage('제출 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+      setErrorMessage(err instanceof Error ? err.message : '제출 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
       setSubmitStatus('error')
     } finally {
       setIsSubmitting(false)
