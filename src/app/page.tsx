@@ -125,7 +125,7 @@ function LandingContent() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-primary text-xs font-semibold">서울 위치 기반 스트릿 아트 SNS</span>
+            <span className="text-primary text-xs font-semibold">국내 위치 기반 스트릿 아트 SNS</span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-black leading-[1.05] tracking-tight mb-6">
@@ -146,12 +146,14 @@ function LandingContent() {
               지금 둘러보기
               <ArrowRight size={18} />
             </Link>
-            <Link
-              href="/signup"
-              className="flex items-center gap-2 bg-surface-2 text-white font-semibold px-7 py-3.5 rounded-2xl border border-border hover:bg-surface-3 transition-all active:scale-95 tap-highlight-none"
-            >
-              무료 가입
-            </Link>
+            {!user && (
+              <Link
+                href="/signup"
+                className="flex items-center gap-2 bg-surface-2 text-white font-semibold px-7 py-3.5 rounded-2xl border border-border hover:bg-surface-3 transition-all active:scale-95 tap-highlight-none"
+              >
+                무료 가입
+              </Link>
+            )}
           </div>
         </div>
       </section>
@@ -255,12 +257,14 @@ function LandingContent() {
                   피드 둘러보기
                   <ArrowRight size={18} />
                 </Link>
-                <Link
-                  href="/signup"
-                  className="flex items-center gap-2 bg-white/10 text-white font-semibold px-8 py-4 rounded-2xl border border-white/20 hover:bg-white/15 transition-all active:scale-95 tap-highlight-none"
-                >
-                  회원가입
-                </Link>
+                {!user && (
+                  <Link
+                    href="/signup"
+                    className="flex items-center gap-2 bg-white/10 text-white font-semibold px-8 py-4 rounded-2xl border border-white/20 hover:bg-white/15 transition-all active:scale-95 tap-highlight-none"
+                  >
+                    회원가입
+                  </Link>
+                )}
               </div>
             </div>
           </div>

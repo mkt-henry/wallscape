@@ -32,10 +32,14 @@ export function useInfiniteFeed(params: FeedParams) {
   return useInfiniteQuery({
     queryKey: postKeys.feed(params),
     queryFn: async ({ pageParam }) => {
-      // bookmarks는 로그인 사용자만 조회 가능 (RLS)
-      const selectFields = user
-        ? `*, profiles!posts_user_id_fkey(id, username, display_name, avatar_url), likes(user_id), bookmarks(user_id)`
-        : `*, profiles!posts_user_id_fkey(id, username, display_name, avatar_url), likes(user_id)`
+      const selectFields = `
+        id, user_id, image_url, thumbnail_url, title, description, tags,
+        lat, lng, address, city, district,
+        like_count, comment_count, bookmark_count, view_count,
+        visibility, created_at, updated_at,
+        profiles(id, username, display_name, avatar_url),
+        likes(user_id)
+      `
 
       let query = supabase
         .from('posts')
@@ -132,13 +136,16 @@ export function usePost(id: string) {
   return useQuery({
     queryKey: postKeys.detail(id),
     queryFn: async () => {
-      const selectFields = user
-        ? `*, profiles!posts_user_id_fkey(id, username, display_name, avatar_url, bio), likes(user_id), bookmarks(user_id)`
-        : `*, profiles!posts_user_id_fkey(id, username, display_name, avatar_url, bio), likes(user_id)`
-
       const { data, error } = await supabase
         .from('posts')
-        .select(selectFields)
+        .select(`
+          id, user_id, image_url, thumbnail_url, title, description, tags,
+          lat, lng, address, city, district,
+          like_count, comment_count, bookmark_count, view_count,
+          visibility, created_at, updated_at,
+          profiles(id, username, display_name, avatar_url, bio),
+          likes(user_id)
+        `)
         .eq('id', id)
         .single()
 
@@ -164,13 +171,16 @@ export function useUserPosts(userId: string) {
   return useQuery({
     queryKey: postKeys.userPosts(userId),
     queryFn: async () => {
-      const selectFields = user
-        ? `*, profiles!posts_user_id_fkey(id, username, display_name, avatar_url), likes(user_id), bookmarks(user_id)`
-        : `*, profiles!posts_user_id_fkey(id, username, display_name, avatar_url), likes(user_id)`
-
       const { data, error } = await supabase
         .from('posts')
-        .select(selectFields)
+        .select(`
+          id, user_id, image_url, thumbnail_url, title, description, tags,
+          lat, lng, address, city, district,
+          like_count, comment_count, bookmark_count, view_count,
+          visibility, created_at, updated_at,
+          profiles(id, username, display_name, avatar_url),
+          likes(user_id)
+        `)
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
