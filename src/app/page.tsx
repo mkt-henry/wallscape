@@ -285,6 +285,7 @@ function LandingContent() {
           </p>
           <div className="flex items-center gap-4 text-xs text-text-muted">
             <Link href="/feed" className="hover:text-white transition-colors">피드</Link>
+            <Link href="/feedback" className="hover:text-white transition-colors">문의 · 피드백</Link>
             <Link href="/login" className="hover:text-white transition-colors">로그인</Link>
             <Link href="/signup" className="hover:text-white transition-colors">회원가입</Link>
           </div>
