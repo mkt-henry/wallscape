@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Settings, Grid3X3, Archive, MapPin, Share2, MoreHorizontal } from 'lucide-react'
+import { ArrowLeft, Settings, Grid3X3, Archive, Bookmark, MapPin, Share2, MoreHorizontal } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -12,7 +12,7 @@ import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { PostGrid, PostGridSkeleton } from '@/components/feed/PostGrid'
 import { formatNumber, cn } from '@/lib/utils'
-import { useArchivedPosts, useArchivePost } from '@/hooks/usePosts'
+import { useArchivedPosts, useArchivePost, useBookmarkedPosts } from '@/hooks/usePosts'
 import type { Profile, PostWithUser } from '@/types'
 
 interface ProfileViewProps {
@@ -20,7 +20,7 @@ interface ProfileViewProps {
   isOwnProfile: boolean
 }
 
-type ProfileTab = 'posts' | 'archived'
+type ProfileTab = 'posts' | 'saved' | 'archived'
 
 export function ProfileView({ username, isOwnProfile }: ProfileViewProps) {
   const router = useRouter()
@@ -96,6 +96,11 @@ export function ProfileView({ username, isOwnProfile }: ProfileViewProps) {
     isOwnProfile && profile ? profile.id : ''
   )
   const { mutate: archivePost } = useArchivePost()
+
+  // Bookmarked posts (own profile only)
+  const { data: savedPosts, isLoading: savedLoading } = useBookmarkedPosts(
+    isOwnProfile && profile ? profile.id : ''
+  )
 
   const handleUnarchive = (postId: string) => {
     archivePost({ postId, isArchived: true })
@@ -305,6 +310,20 @@ export function ProfileView({ username, isOwnProfile }: ProfileViewProps) {
         </button>
         {isOwnProfile && (
           <button
+            onClick={() => setActiveTab('saved')}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-2 h-12 text-sm font-semibold transition-colors',
+              activeTab === 'saved'
+                ? 'text-white border-b-2 border-white'
+                : 'text-text-secondary hover:text-white'
+            )}
+          >
+            <Bookmark size={16} />
+            저장됨
+          </button>
+        )}
+        {isOwnProfile && (
+          <button
             onClick={() => setActiveTab('archived')}
             className={cn(
               'flex-1 flex items-center justify-center gap-2 h-12 text-sm font-semibold transition-colors',
@@ -315,11 +334,6 @@ export function ProfileView({ username, isOwnProfile }: ProfileViewProps) {
           >
             <Archive size={16} />
             보관함
-            {archivedPosts && archivedPosts.length > 0 && (
-              <span className="text-xs bg-surface-2 text-text-secondary rounded-full px-1.5 py-0.5">
-                {archivedPosts.length}
-              </span>
-            )}
           </button>
         )}
       </div>
@@ -343,6 +357,27 @@ export function ProfileView({ username, isOwnProfile }: ProfileViewProps) {
                     첫 작품을 올려보세요
                   </Link>
                 )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Saved grid */}
+      {activeTab === 'saved' && isOwnProfile && (
+        <div>
+          {savedLoading ? (
+            <PostGridSkeleton count={9} />
+          ) : savedPosts && savedPosts.length > 0 ? (
+            <PostGrid posts={savedPosts} />
+          ) : (
+            <div className="py-16 flex flex-col items-center gap-3">
+              <div className="w-16 h-16 rounded-2xl bg-surface-2 flex items-center justify-center">
+                <Bookmark size={28} className="text-text-muted" />
+              </div>
+              <div className="text-center">
+                <p className="text-white font-semibold mb-1">저장된 게시물이 없어요</p>
+                <p className="text-text-secondary text-sm">게시물의 북마크 아이콘을 눌러 저장해보세요</p>
               </div>
             </div>
           )}

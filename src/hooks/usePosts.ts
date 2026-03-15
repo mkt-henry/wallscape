@@ -16,15 +16,17 @@ const POST_SELECT = `
   like_count, comment_count, bookmark_count, view_count,
   visibility, created_at, updated_at,
   profiles(id, username, display_name, avatar_url),
-  likes(user_id)
+  likes(user_id),
+  bookmarks(user_id)
 `
 
 function mapPost(p: Record<string, unknown>, userId?: string): PostWithUser {
   const likes = (p.likes as { user_id: string }[] | undefined) ?? []
+  const bookmarks = (p.bookmarks as { user_id: string }[] | undefined) ?? []
   return {
     ...(p as unknown as PostWithUser),
     is_liked: userId ? likes.some((l) => l.user_id === userId) : false,
-    is_bookmarked: false,
+    is_bookmarked: userId ? bookmarks.some((b) => b.user_id === userId) : false,
   }
 }
 
@@ -138,7 +140,8 @@ export function usePost(id: string) {
           like_count, comment_count, bookmark_count, view_count,
           visibility, created_at, updated_at,
           profiles(id, username, display_name, avatar_url, bio),
-          likes(user_id)
+          likes(user_id),
+          bookmarks(user_id)
         `)
         .eq('id', id)
         .single()
@@ -314,6 +317,43 @@ export function useAddComment() {
       queryClient.invalidateQueries({ queryKey: ['comments', postId] })
       queryClient.invalidateQueries({ queryKey: postKeys.detail(postId) })
     },
+  })
+}
+
+// ---- Bookmarked posts (own) ------------------------------------
+
+export function useBookmarkedPosts(userId: string) {
+  const { user } = useAuthStore()
+
+  return useQuery({
+    queryKey: postKeys.bookmarks(userId),
+    queryFn: async () => {
+      if (!user || user.id !== userId) return []
+      const supabase = getSupabaseClient()
+      const { data, error } = await supabase
+        .from('bookmarks')
+        .select(`
+          post_id,
+          created_at,
+          posts(
+            id, user_id, image_url, thumbnail_url, title, description, tags,
+            lat, lng, address, city, district,
+            like_count, comment_count, bookmark_count, view_count,
+            visibility, created_at, updated_at,
+            profiles(id, username, display_name, avatar_url),
+            likes(user_id),
+            bookmarks(user_id)
+          )
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return (data ?? [])
+        .map((row) => row.posts as unknown as Record<string, unknown>)
+        .filter(Boolean)
+        .map((p) => mapPost(p, userId))
+    },
+    enabled: !!userId && !!user && user.id === userId,
   })
 }
 
