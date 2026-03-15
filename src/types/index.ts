@@ -41,6 +41,7 @@ export interface ProfileWithFollow extends Profile {
 // ---- Post --------------------------------------------------
 
 export type PostVisibility = 'public' | 'followers' | 'private'
+export type PostStatus = 'public' | 'archived'
 
 export interface Post {
   id: string
@@ -61,6 +62,8 @@ export interface Post {
   bookmark_count: number
   view_count: number
   visibility: PostVisibility
+  status: PostStatus
+  archived_at: string | null
   created_at: string
   updated_at: string
 }

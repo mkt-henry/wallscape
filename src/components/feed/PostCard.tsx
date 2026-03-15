@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, MessageCircle, Bookmark, MapPin, MoreHorizontal, Images } from 'lucide-react'
-import { useLikePost, useBookmarkPost } from '@/hooks/usePosts'
+import { Heart, MessageCircle, Bookmark, MapPin, MoreHorizontal, Images, Archive, EyeOff } from 'lucide-react'
+import { useLikePost, useBookmarkPost, useArchivePost } from '@/hooks/usePosts'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Avatar } from '@/components/ui/Avatar'
+import { ActionSheet } from '@/components/ui/BottomSheet'
 import { formatRelativeTime, formatNumber, cn } from '@/lib/utils'
 import type { PostWithUser } from '@/types'
 
@@ -23,8 +24,13 @@ export function PostCard({ post, showLocation = true, priority = false }: PostCa
   const [doubleTapTimer, setDoubleTapTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
   const [showHeartAnim, setShowHeartAnim] = useState(false)
 
+  const [showMoreSheet, setShowMoreSheet] = useState(false)
+
   const { mutate: toggleLike, isPending: isLiking } = useLikePost()
   const { mutate: toggleBookmark, isPending: isBookmarking } = useBookmarkPost()
+  const { mutate: archivePost } = useArchivePost()
+
+  const isOwnPost = !!user && user.id === post.user_id
 
   const handleImageDoubleTap = () => {
     if (doubleTapTimer) {
@@ -74,7 +80,10 @@ export function PostCard({ post, showLocation = true, priority = false }: PostCa
           </div>
         </Link>
 
-        <button className="p-1 tap-highlight-none">
+        <button
+          className="p-1 tap-highlight-none"
+          onClick={() => setShowMoreSheet(true)}
+        >
           <MoreHorizontal size={20} className="text-text-secondary" />
         </button>
       </div>
@@ -225,6 +234,21 @@ export function PostCard({ post, showLocation = true, priority = false }: PostCa
           {formatRelativeTime(post.created_at)}
         </p>
       </div>
+      {isOwnPost && (
+        <ActionSheet
+          isOpen={showMoreSheet}
+          onClose={() => setShowMoreSheet(false)}
+          title="게시물 옵션"
+          options={[
+            {
+              icon: post.status === 'archived' ? <EyeOff size={20} /> : <Archive size={20} />,
+              label: post.status === 'archived' ? '공개로 전환' : '보관하기',
+              onClick: () =>
+                archivePost({ postId: post.id, isArchived: post.status === 'archived' }),
+            },
+          ]}
+        />
+      )}
     </article>
   )
 }
