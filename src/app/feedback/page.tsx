@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Mail, Clock, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react'
 import { getSupabaseClient } from '@/lib/supabase/client'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 
@@ -34,12 +36,35 @@ function validateEmail(email: string) {
 }
 
 export default function FeedbackPage() {
+  const router = useRouter()
+  const { user, isLoading: authLoading } = useAuthStore()
+
+  const { profile } = useAuthStore()
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/login?redirectTo=/feedback')
+    }
+  }, [user, authLoading, router])
+
   const [form, setForm] = useState<FormState>({
     name: '',
     email: '',
     type: 'feedback',
     message: '',
   })
+
+  // Pre-fill name/email once auth is ready
+  useEffect(() => {
+    if (user && !form.name && !form.email) {
+      setForm((f) => ({
+        ...f,
+        name: profile?.display_name || profile?.username || '',
+        email: user.email || '',
+      }))
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, profile])
   const [errors, setErrors] = useState<FormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
@@ -88,6 +113,14 @@ export default function FeedbackPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (authLoading || (!user && !authLoading)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="loader" />
+      </div>
+    )
   }
 
   if (submitStatus === 'success') {

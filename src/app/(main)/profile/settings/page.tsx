@@ -14,6 +14,7 @@ import {
   Moon,
   Globe,
   Trash2,
+  MessageSquare,
 } from 'lucide-react'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -104,6 +105,12 @@ export default function SettingsPage() {
     {
       title: '지원',
       items: [
+        {
+          icon: <MessageSquare size={20} />,
+          label: '피드백 / 문의 보내기',
+          description: '버그 신고, 기능 제안, 파트너십 문의',
+          action: () => router.push('/feedback'),
+        },
         {
           icon: <HelpCircle size={20} />,
           label: '도움말 및 지원',
