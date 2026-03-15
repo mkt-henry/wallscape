@@ -294,6 +294,7 @@ export function useBookmarkPost() {
     },
     onSettled: (_, __, { postId }) => {
       queryClient.invalidateQueries({ queryKey: postKeys.detail(postId) })
+      if (user) queryClient.invalidateQueries({ queryKey: postKeys.bookmarks(user.id) })
     },
   })
 }
