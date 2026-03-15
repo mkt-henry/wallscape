@@ -69,11 +69,11 @@ export function PostCard({ post, showLocation = true, priority = false }: PostCa
             <p className="text-white text-sm font-semibold leading-tight">
               {author.display_name || author.username}
             </p>
-            {showLocation && (post.city || post.district) && (
+            {showLocation && (post.district || post.city || post.address) && (
               <div className="flex items-center gap-1 mt-0.5">
                 <MapPin size={10} className="text-primary" />
                 <span className="text-text-secondary text-xs">
-                  {post.district || post.city}
+                  {post.district || post.city || post.address}
                 </span>
               </div>
             )}
