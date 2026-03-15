@@ -125,7 +125,7 @@ function LandingContent() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-primary text-xs font-semibold">국내 위치 기반 스트릿 아트 SNS</span>
+            <span className="text-primary text-xs font-semibold">위치 기반 스트릿 아트 SNS</span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-black leading-[1.05] tracking-tight mb-6">

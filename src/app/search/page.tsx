@@ -103,7 +103,7 @@ function SearchContent() {
         <div className="flex items-center gap-3 px-4 py-3">
           <button
             onClick={() => router.back()}
-            className="p-1 tap-highlight-none shrink-0"
+            className="p-2 tap-highlight-none shrink-0"
           >
             <ArrowLeft size={24} className="text-white" />
           </button>
@@ -133,13 +133,13 @@ function SearchContent() {
         </div>
 
         {/* Type tabs */}
-        <div className="flex gap-1 px-4 pb-3 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-1 px-4 pb-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
           {SEARCH_TABS.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={cn(
-                'flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition-all tap-highlight-none',
+                'flex-shrink-0 snap-start flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition-all tap-highlight-none',
                 activeTab === tab.key
                   ? 'bg-primary text-white'
                   : 'bg-surface-2 text-text-secondary'
@@ -207,7 +207,7 @@ function SearchContent() {
                   <Link
                     key={user.id}
                     href={`/profile/${user.username}`}
-                    className="flex items-center gap-4 px-4 py-4 hover:bg-surface/50 tap-highlight-none"
+                    className="flex items-center gap-4 px-4 py-4 hover:bg-surface/50 active:bg-surface tap-highlight-none"
                   >
                     <Avatar src={user.avatar_url} username={user.username} size="md" />
                     <div className="flex-1 min-w-0">

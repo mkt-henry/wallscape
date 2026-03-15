@@ -12,8 +12,8 @@ export default function MainLayout({
       <SideNav />
 
       {/* Main content — offset by sidebar width on desktop */}
-      <div className="flex-1 flex flex-col md:ml-16 lg:ml-56">
-        <main className="flex-1 pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
+      <div className="flex-1 min-w-0 flex flex-col md:ml-16 lg:ml-56">
+        <main className="flex-1 min-w-0 pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
           {children}
         </main>
       </div>

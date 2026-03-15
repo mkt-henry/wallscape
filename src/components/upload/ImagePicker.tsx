@@ -103,10 +103,17 @@ export function ImagePicker({ onSelect, selectedImage, preview }: ImagePickerPro
             </div>
           )}
 
-          {exifFound && !isExtracting && (
+          {!isExtracting && exifFound && (
             <div className="absolute bottom-3 left-3 glass rounded-xl px-3 py-2 flex items-center gap-2">
               <MapPin size={14} className="text-primary" />
               <p className="text-white text-xs">위치 자동 감지됨</p>
+            </div>
+          )}
+
+          {!isExtracting && !exifFound && selectedImage && (
+            <div className="absolute bottom-3 left-3 glass rounded-xl px-3 py-2 flex items-center gap-2">
+              <MapPin size={14} className="text-text-muted" />
+              <p className="text-white/70 text-xs">위치 정보 없음 · 다음 단계에서 직접 설정</p>
             </div>
           )}
         </div>

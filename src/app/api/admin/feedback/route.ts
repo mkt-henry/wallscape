@@ -5,17 +5,22 @@ const ADMIN_EMAIL = 'bpark0718@gmail.com'
 const PAGE_SIZE = 50
 
 async function getAuthorizedUser() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    const result = await Promise.race([
+      supabase.auth.getUser(),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Auth timeout')), 8000)),
+    ])
+    const { data: { user }, error } = result
 
-  if (error || !user || user.email !== ADMIN_EMAIL) {
+    if (error || !user || user.email !== ADMIN_EMAIL) {
+      return null
+    }
+
+    return user
+  } catch {
     return null
   }
-
-  return user
 }
 
 // GET /api/admin/feedback
@@ -31,7 +36,7 @@ export async function GET(request: NextRequest) {
   const typeFilter = searchParams.get('type') // feedback | bug | contact | partnership | null
   const unreadOnly = searchParams.get('unread') === 'true'
 
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
   let query = adminClient
     .from('feedback')
     .select('*', { count: 'exact' })
@@ -81,7 +86,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'id가 필요합니다.' }, { status: 400 })
   }
 
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
   const { data, error } = await adminClient
     .from('feedback')
     .update({ is_read: true })
@@ -117,7 +122,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'id가 필요합니다.' }, { status: 400 })
   }
 
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
   const { error } = await adminClient.from('feedback').delete().eq('id', id)
 
   if (error) {

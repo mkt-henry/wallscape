@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { Bell, Search } from 'lucide-react'
+import { useState, useCallback, useEffect } from 'react'
+import { Bell, Search, ArrowUp } from 'lucide-react'
 import Link from 'next/link'
 import { useInfiniteFeed } from '@/hooks/usePosts'
 import { useLocation } from '@/hooks/useLocation'
@@ -40,7 +40,14 @@ function PostSkeleton() {
 
 export default function FeedPage() {
   const [activeTab, setActiveTab] = useState<FeedSortType>('latest')
+  const [showScrollTop, setShowScrollTop] = useState(false)
   const { location } = useLocation()
+
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 400)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const {
     data,
@@ -115,13 +122,13 @@ export default function FeedPage() {
           </div>
 
           {/* Tab bar */}
-          <div className="flex items-center gap-1 pb-3 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-1 pb-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
             {FEED_TABS.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 className={cn(
-                  'flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 tap-highlight-none',
+                  'flex-shrink-0 snap-start px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 tap-highlight-none',
                   activeTab === tab.key
                     ? 'bg-primary text-white shadow-glow-primary'
                     : 'bg-surface-2 text-text-secondary hover:bg-surface-3'
@@ -200,6 +207,18 @@ export default function FeedPage() {
           </div>
         )}
       </div>
+
+      {/* Scroll-to-top button */}
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed right-4 z-30 w-11 h-11 rounded-full bg-surface border border-border shadow-lg flex items-center justify-center tap-highlight-none active:scale-90 transition-transform md:bottom-8"
+          style={{ bottom: 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 16px)' }}
+          aria-label="맨 위로"
+        >
+          <ArrowUp size={20} className="text-white" />
+        </button>
+      )}
     </div>
   )
 }

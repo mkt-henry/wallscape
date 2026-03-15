@@ -80,12 +80,14 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
     const lat = parseFloat(result.y)
     const lng = parseFloat(result.x)
     const address = result.road_address_name || result.address_name
+    const { city, district } = extractLocation(address)
 
     const location: Location = {
       lat,
       lng,
       address,
-      city: extractCity(address),
+      city,
+      district,
     }
 
     setSelectedLocation(location)
@@ -101,16 +103,35 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
     }
 
     const address = await reverseGeocode(gpsLocation.lat, gpsLocation.lng)
+    const { city, district } = extractLocation(address)
     const location: Location = {
       lat: gpsLocation.lat,
       lng: gpsLocation.lng,
       address,
-      city: extractCity(address),
+      city,
+      district,
     }
 
     setSelectedLocation(location)
     onLocationSelect(location)
   }
+
+  // Auto-reverse-geocode when initial location (from EXIF) has no address
+  useEffect(() => {
+    if (
+      initialLocation &&
+      !initialLocation.address &&
+      Number.isFinite(initialLocation.lat) &&
+      Number.isFinite(initialLocation.lng)
+    ) {
+      reverseGeocode(initialLocation.lat, initialLocation.lng).then((address) => {
+        const { city, district } = extractLocation(address)
+        const enriched: Location = { ...initialLocation, address, city, district }
+        setSelectedLocation(enriched)
+        onLocationSelect(enriched)
+      })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (gpsLocation && !selectedLocation) {
@@ -126,7 +147,7 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
       lat: selectedLocation?.lat ?? 37.5665,
       lng: selectedLocation?.lng ?? 126.978,
       address: manualAddress.trim(),
-      city: extractCity(manualAddress),
+      city: extractLocation(manualAddress).city,
     }
 
     setSelectedLocation(location)
@@ -286,8 +307,12 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
   )
 }
 
-function extractCity(address: string): string {
-  // Extract city from Korean address
-  const match = address.match(/^([^\s]+(?:시|도|군))/)
-  return match ? match[1] : address.split(' ')[0] || ''
+function extractLocation(address: string): { city: string; district: string } {
+  // Korean address: "서울특별시 마포구 홍익로 94" or "서울 강남구 삼성동 166"
+  const parts = address.split(' ').filter(Boolean)
+  const city = parts[0] || ''
+  const district = parts.find((p) => /[구군]$/.test(p)) || parts[1] || ''
+  // Don't save if it looks like coordinates
+  if (/^\d/.test(city)) return { city: '', district: '' }
+  return { city, district }
 }

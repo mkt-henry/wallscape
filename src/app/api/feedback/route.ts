@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const adminClient = await createAdminClient()
+    const adminClient = createAdminClient()
     const { error } = await adminClient.from('feedback').insert({
       name: name.trim(),
       email: email.trim(),

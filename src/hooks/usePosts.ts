@@ -30,6 +30,16 @@ function mapPost(p: Record<string, unknown>, userId?: string): PostWithUser {
   }
 }
 
+// ---- Helper: sync count via API route (bypasses RLS) -----------
+
+async function syncCount(postId: string, type: 'like' | 'bookmark' | 'comment') {
+  await fetch('/api/sync-counts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ postId, type }),
+  })
+}
+
 // ---- Query Keys ------------------------------------------------
 
 export const postKeys = {
@@ -195,6 +205,10 @@ export function useLikePost() {
         const { error } = await supabase.from('likes').insert({ post_id: postId, user_id: user.id })
         if (error) throw error
       }
+
+      // Sync like_count via API route (bypasses RLS)
+      await syncCount(postId, 'like')
+
       return { postId, isLiked: !isLiked }
     },
     onMutate: async ({ postId, isLiked }) => {
@@ -253,6 +267,10 @@ export function useBookmarkPost() {
         const { error } = await supabase.from('bookmarks').insert({ post_id: postId, user_id: user.id })
         if (error) throw error
       }
+
+      // Sync bookmark_count via API route (bypasses RLS)
+      await syncCount(postId, 'bookmark')
+
       return { postId, isBookmarked: !isBookmarked }
     },
     onMutate: async ({ postId, isBookmarked }) => {
@@ -336,7 +354,10 @@ export function useAddComment() {
       if (error) throw error
       return data
     },
-    onSuccess: (_, { postId }) => {
+    onSuccess: async (_, { postId }) => {
+      // Sync comment_count via API route (bypasses RLS)
+      await syncCount(postId, 'comment')
+
       queryClient.invalidateQueries({ queryKey: ['comments', postId] })
       queryClient.invalidateQueries({ queryKey: postKeys.detail(postId) })
     },

@@ -30,28 +30,33 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Refresh session - do not remove this
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const pathname = request.nextUrl.pathname
 
-  // Protected routes - require authentication
+  // Skip auth check for API routes — they handle auth themselves
+  if (pathname.startsWith('/api/')) {
+    return supabaseResponse
+  }
+
+  // Protected page routes - require authentication
   const protectedPaths = ['/upload', '/activity', '/profile', '/admin']
   const isProtectedPath = protectedPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path)
+    pathname.startsWith(path)
   )
 
-  // Auth routes - redirect if already logged in
-  const authPaths = ['/login', '/signup']
-  const isAuthPath = authPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path)
-  )
+  // Use getSession() instead of getUser() to avoid network calls in Edge middleware.
+  // getSession() reads JWT from cookies locally — instant, no Supabase API round-trip.
+  // Actual server-side verification happens in page/API route level.
+  if (isProtectedPath) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
 
-  if (!user && isProtectedPath) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    url.searchParams.set('redirectTo', request.nextUrl.pathname)
-    return NextResponse.redirect(url)
+    if (!session) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      url.searchParams.set('redirectTo', pathname)
+      return NextResponse.redirect(url)
+    }
   }
 
   return supabaseResponse

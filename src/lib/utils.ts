@@ -88,21 +88,61 @@ export async function extractExifLocation(
   file: File
 ): Promise<ExifLocation | null> {
   try {
-    // Dynamic import to avoid SSR issues
-    const exifr = await import('exifr')
-    const gps = await exifr.gps(file)
+    const exifrModule = await import('exifr')
+    const exifr = exifrModule.default || exifrModule
 
-    if (gps && typeof gps.latitude === 'number' && typeof gps.longitude === 'number') {
-      return {
-        lat: gps.latitude,
-        lng: gps.longitude,
+    // Read file as ArrayBuffer first for reliable mobile support
+    const buffer = await file.arrayBuffer()
+
+    // Try exifr.gps() with ArrayBuffer
+    try {
+      const gps = await exifr.gps(buffer)
+      if (gps && Number.isFinite(gps.latitude) && Number.isFinite(gps.longitude)) {
+        return { lat: gps.latitude, lng: gps.longitude }
       }
+    } catch {
+      // gps() failed, try parse() fallback below
     }
+
+    // Fallback: parse raw GPS tags and convert manually
+    try {
+      const tags = await exifr.parse(buffer, {
+        pick: ['GPSLatitude', 'GPSLatitudeRef', 'GPSLongitude', 'GPSLongitudeRef'],
+      })
+      if (tags?.GPSLatitude && tags?.GPSLongitude) {
+        const lat = dmsToDecimal(tags.GPSLatitude, tags.GPSLatitudeRef)
+        const lng = dmsToDecimal(tags.GPSLongitude, tags.GPSLongitudeRef)
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          return { lat, lng }
+        }
+      }
+    } catch {
+      // parse() also failed
+    }
+
     return null
   } catch (error) {
     console.warn('EXIF extraction failed:', error)
     return null
   }
+}
+
+/** Convert GPS DMS (degrees/minutes/seconds) array to decimal degrees */
+function dmsToDecimal(
+  dms: number | number[],
+  ref?: string
+): number {
+  let decimal: number
+  if (typeof dms === 'number') {
+    decimal = dms
+  } else if (Array.isArray(dms)) {
+    const [d = 0, m = 0, s = 0] = dms
+    decimal = d + m / 60 + s / 3600
+  } else {
+    return NaN
+  }
+  if (ref === 'S' || ref === 'W') decimal = -decimal
+  return decimal
 }
 
 // ---- Image utilities ----------------------------------------

@@ -211,7 +211,7 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="flex flex-col bg-background" style={{ minHeight: 'calc(100dvh - var(--bottom-nav-height) - env(safe-area-inset-bottom))' }}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-safe-top h-14">
         <button onClick={handleBack} className="p-2 -ml-2 tap-highlight-none">
@@ -269,7 +269,7 @@ export default function UploadPage() {
       </div>
 
       {/* Step content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-20">
         {step === 'image' && (
           <div className="px-4 pb-4">
             <ImagePicker
@@ -293,7 +293,7 @@ export default function UploadPage() {
           <div className="px-4 pb-4 space-y-4">
             {/* Image thumbnail */}
             {imagePreview && (
-              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-surface-2">
+              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-surface-2">
                 <img
                   src={imagePreview}
                   alt="Preview"
@@ -343,7 +343,7 @@ export default function UploadPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 maxLength={500}
-                rows={4}
+                rows={3}
                 className="input-base resize-none"
               />
               <p className="text-text-muted text-xs mt-1 text-right">
@@ -398,8 +398,11 @@ export default function UploadPage() {
         )}
       </div>
 
-      {/* Bottom action */}
-      <div className="px-4 pb-safe-bottom pb-4 pt-3 border-t border-border bg-background">
+      {/* Bottom action — fixed above BottomNavBar */}
+      <div
+        className="fixed left-0 right-0 px-4 pt-3 pb-4 border-t border-border bg-background/95 backdrop-blur-md z-[60] md:static md:z-auto md:bg-background md:backdrop-blur-none"
+        style={{ bottom: 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom))' }}
+      >
         {step === 'info' ? (
           <Button
             onClick={handlePublish}
