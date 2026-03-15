@@ -64,11 +64,8 @@ function LandingContent() {
     const code = searchParams.get('code')
     if (code) {
       router.replace(`/auth/callback?code=${code}`)
-      return
     }
-    if (!isInitialized || isLoading) return
-    if (user) router.replace('/feed')
-  }, [isInitialized, isLoading, user, router, searchParams])
+  }, [router, searchParams])
 
   return (
     <div className="min-h-screen bg-background text-white overflow-x-hidden">
