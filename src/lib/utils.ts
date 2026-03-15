@@ -127,24 +127,33 @@ export async function resizeImage(
 
     img.onload = () => {
       revokeObjectURL(url)
-      const canvas = document.createElement('canvas')
+
       let { width, height } = img
 
-      if (width > maxWidth || height > maxHeight) {
-        const ratio = Math.min(maxWidth / width, maxHeight / height)
-        width = Math.round(width * ratio)
-        height = Math.round(height * ratio)
+      // Always downscale to fit maxWidth/maxHeight
+      const ratio = Math.min(maxWidth / width, maxHeight / height, 1)
+      width = Math.round(width * ratio)
+      height = Math.round(height * ratio)
+
+      // Hard cap for canvas safety (some browsers fail silently above ~16MP)
+      const MAX_CANVAS_PX = 4096
+      if (width > MAX_CANVAS_PX || height > MAX_CANVAS_PX) {
+        const cap = Math.min(MAX_CANVAS_PX / width, MAX_CANVAS_PX / height)
+        width = Math.round(width * cap)
+        height = Math.round(height * cap)
       }
 
+      const canvas = document.createElement('canvas')
       canvas.width = width
       canvas.height = height
-      const ctx = canvas.getContext('2d')!
+      const ctx = canvas.getContext('2d')
+      if (!ctx) { reject(new Error('Canvas context unavailable')); return }
       ctx.drawImage(img, 0, 0, width, height)
 
       canvas.toBlob(
         (blob) => {
           if (blob) resolve(blob)
-          else reject(new Error('Canvas toBlob failed'))
+          else reject(new Error('이미지 변환 실패. 다른 이미지를 시도해주세요.'))
         },
         'image/jpeg',
         quality

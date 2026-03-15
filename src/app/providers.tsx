@@ -60,52 +60,42 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const supabase = getSupabaseClient()
 
-    // Initial session fetch
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session)
-
-      if (session?.user) {
-        // Fetch profile
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-
-        if (profile) {
-          setProfile(profile as Profile)
-        }
-      }
-
-      setLoading(false)
-      setInitialized(true)
-    })
-
-    // Listen for auth state changes
+    // Use onAuthStateChange only — avoids getSession() network hang
+    // INITIAL_SESSION fires immediately with the current session state
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session)
 
-      if (event === 'SIGNED_IN' && session?.user) {
+      if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && session?.user) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single()
 
-        if (profile) {
-          setProfile(profile as Profile)
-        }
-        setLoading(false)
+        if (profile) setProfile(profile as Profile)
       } else if (event === 'SIGNED_OUT') {
         reset()
-      } else if (event === 'TOKEN_REFRESHED') {
+      }
+
+      // Mark initialized after first event (INITIAL_SESSION always fires first)
+      if (event === 'INITIAL_SESSION') {
         setLoading(false)
+        setInitialized(true)
       }
     })
 
-    return () => subscription.unsubscribe()
+    // Fallback: if INITIAL_SESSION never fires within 4s, unblock the app
+    const fallback = setTimeout(() => {
+      setLoading(false)
+      setInitialized(true)
+    }, 4000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(fallback)
+    }
   }, [setSession, setProfile, setLoading, setInitialized, reset])
 
   return <>{children}</>

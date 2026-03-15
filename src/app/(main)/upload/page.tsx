@@ -27,7 +27,7 @@ const STEPS: { key: UploadStep; label: string }[] = [
 
 export default function UploadPage() {
   const router = useRouter()
-  const { user } = useAuthStore()
+  const { user, session } = useAuthStore()
 
   const [step, setStep] = useState<UploadStep>('image')
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
@@ -79,29 +79,47 @@ export default function UploadPage() {
     setStep('publishing')
 
     try {
-      // 1. Resize image
-      setUploadProgress(10)
-      const resized = await resizeImage(selectedImage)
+      // 0. Verify session
+      setUploadProgress(5)
+      if (!session?.access_token) throw new Error('로그인 세션이 없습니다. 다시 로그인해주세요.')
 
-      // 2. Upload to storage
+      // 1. Resize image (with timeout for large files)
+      setUploadProgress(10)
+      const resizeTimeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('이미지 처리 시간 초과. 더 작은 이미지를 사용해주세요.')), 20000)
+      )
+      const resized = await Promise.race([resizeImage(selectedImage, 1080, 1080, 0.82), resizeTimeout])
+
+      // 2. Upload to storage via direct fetch (bypass SDK session issues)
       setUploadProgress(30)
       const storagePath = generateStoragePath(user.id, selectedImage.name)
-      const { error: storageError } = await supabase.storage
-        .from('post-images')
-        .upload(storagePath, resized, {
-          contentType: 'image/jpeg',
-          cacheControl: '3600',
-        })
+      const storageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/post-images/${storagePath}`
 
-      if (storageError) throw new Error(`이미지 업로드 실패: ${storageError.message}`)
+      const uploadPromise = fetch(storageUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          'Content-Type': 'image/jpeg',
+          'x-upsert': 'false',
+        },
+        body: resized,
+      }).then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text()
+          throw new Error(`이미지 업로드 실패 (${res.status}): ${text}`)
+        }
+        return res
+      })
+
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('업로드 시간 초과 (30초). 네트워크를 확인해주세요.')), 30000)
+      )
+      await Promise.race([uploadPromise, timeoutPromise])
 
       // 3. Get public URL
       setUploadProgress(60)
-      const { data: urlData } = supabase.storage
-        .from('post-images')
-        .getPublicUrl(storagePath)
-
-      const imageUrl = urlData.publicUrl
+      const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/post-images/${storagePath}`
 
       // 4. Create post record
       setUploadProgress(80)
@@ -148,7 +166,7 @@ export default function UploadPage() {
   if (step === 'publishing') {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
-        <div className="text-center space-y-6 max-w-xs">
+        <div className="text-center space-y-6 max-w-xs w-full">
           <div className="relative w-20 h-20 mx-auto">
             <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
             <div className="relative w-20 h-20 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center">
@@ -175,6 +193,18 @@ export default function UploadPage() {
             />
           </div>
           <p className="text-text-secondary text-sm">{uploadProgress}%</p>
+
+          {uploadError && (
+            <div className="p-4 bg-error/10 border border-error/30 rounded-2xl text-left">
+              <p className="text-error text-sm">{uploadError}</p>
+              <button
+                onClick={() => { setStep('info'); setIsUploading(false) }}
+                className="mt-3 text-primary text-sm font-semibold tap-highlight-none"
+              >
+                돌아가기
+              </button>
+            </div>
+          )}
         </div>
       </div>
     )

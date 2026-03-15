@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, Camera, Users, Compass, ArrowRight, Star } from 'lucide-react'
@@ -54,14 +54,21 @@ const PREVIEW_IMAGES = [
   { seed: 'wall1', area: '홍대' },
 ]
 
-export default function LandingPage() {
+function LandingContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { isInitialized, isLoading, user } = useAuthStore()
 
   useEffect(() => {
+    // OAuth fallback: if code lands on root, forward to /auth/callback
+    const code = searchParams.get('code')
+    if (code) {
+      router.replace(`/auth/callback?code=${code}`)
+      return
+    }
     if (!isInitialized || isLoading) return
     if (user) router.replace('/feed')
-  }, [isInitialized, isLoading, user, router])
+  }, [isInitialized, isLoading, user, router, searchParams])
 
   return (
     <div className="min-h-screen bg-background text-white overflow-x-hidden">
@@ -76,18 +83,37 @@ export default function LandingPage() {
             <span className="text-lg font-black tracking-wide">WALLSCAPE</span>
           </div>
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-sm text-text-secondary hover:text-white transition-colors tap-highlight-none"
-            >
-              로그인
-            </Link>
-            <Link
-              href="/feed"
-              className="text-sm font-semibold bg-primary text-white px-4 py-2 rounded-full hover:bg-primary/90 transition-colors tap-highlight-none"
-            >
-              둘러보기
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  href="/profile"
+                  className="text-sm text-text-secondary hover:text-white transition-colors tap-highlight-none"
+                >
+                  내 프로필
+                </Link>
+                <Link
+                  href="/feed"
+                  className="text-sm font-semibold bg-primary text-white px-4 py-2 rounded-full hover:bg-primary/90 transition-colors tap-highlight-none"
+                >
+                  피드 보기
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm text-text-secondary hover:text-white transition-colors tap-highlight-none"
+                >
+                  로그인
+                </Link>
+                <Link
+                  href="/feed"
+                  className="text-sm font-semibold bg-primary text-white px-4 py-2 rounded-full hover:bg-primary/90 transition-colors tap-highlight-none"
+                >
+                  둘러보기
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -265,5 +291,13 @@ export default function LandingPage() {
       </footer>
 
     </div>
+  )
+}
+
+export default function LandingPage() {
+  return (
+    <Suspense fallback={null}>
+      <LandingContent />
+    </Suspense>
   )
 }
