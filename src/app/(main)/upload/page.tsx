@@ -1,0 +1,405 @@
+'use client'
+
+import { useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react'
+import { getSupabaseClient } from '@/lib/supabase/client'
+import { useAuthStore } from '@/stores/useAuthStore'
+import { ImagePicker } from '@/components/upload/ImagePicker'
+import { LocationPicker } from '@/components/upload/LocationPicker'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import {
+  resizeImage,
+  generateStoragePath,
+  parseTagsFromString,
+  cn,
+} from '@/lib/utils'
+import type { Location, PostVisibility, UploadFormData } from '@/types'
+
+type UploadStep = 'image' | 'location' | 'info' | 'publishing'
+
+const STEPS: { key: UploadStep; label: string }[] = [
+  { key: 'image', label: '사진' },
+  { key: 'location', label: '위치' },
+  { key: 'info', label: '정보' },
+]
+
+export default function UploadPage() {
+  const router = useRouter()
+  const { user } = useAuthStore()
+
+  const [step, setStep] = useState<UploadStep>('image')
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [location, setLocation] = useState<Location | null>(null)
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [tagsInput, setTagsInput] = useState('')
+  const [visibility, setVisibility] = useState<PostVisibility>('public')
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+
+  const supabase = getSupabaseClient()
+
+  const currentStepIndex = STEPS.findIndex((s) => s.key === step)
+
+  const handleImageSelect = useCallback((file: File, preview: string, exifLocation?: Location) => {
+    setSelectedImage(file)
+    setImagePreview(preview)
+    if (exifLocation && !location) {
+      setLocation(exifLocation)
+    }
+  }, [location])
+
+  const handleNext = () => {
+    const steps: UploadStep[] = ['image', 'location', 'info']
+    const currentIndex = steps.indexOf(step)
+    if (currentIndex < steps.length - 1) {
+      setStep(steps[currentIndex + 1])
+    }
+  }
+
+  const handleBack = () => {
+    const steps: UploadStep[] = ['image', 'location', 'info']
+    const currentIndex = steps.indexOf(step)
+    if (currentIndex > 0) {
+      setStep(steps[currentIndex - 1])
+    } else {
+      router.back()
+    }
+  }
+
+  const handlePublish = async () => {
+    if (!selectedImage || !location || !title || !user) return
+
+    setIsUploading(true)
+    setUploadError(null)
+    setStep('publishing')
+
+    try {
+      // 1. Resize image
+      setUploadProgress(10)
+      const resized = await resizeImage(selectedImage)
+
+      // 2. Upload to storage
+      setUploadProgress(30)
+      const storagePath = generateStoragePath(user.id, selectedImage.name)
+      const { error: storageError } = await supabase.storage
+        .from('post-images')
+        .upload(storagePath, resized, {
+          contentType: 'image/jpeg',
+          cacheControl: '3600',
+        })
+
+      if (storageError) throw new Error(`이미지 업로드 실패: ${storageError.message}`)
+
+      // 3. Get public URL
+      setUploadProgress(60)
+      const { data: urlData } = supabase.storage
+        .from('post-images')
+        .getPublicUrl(storagePath)
+
+      const imageUrl = urlData.publicUrl
+
+      // 4. Create post record
+      setUploadProgress(80)
+      const tags = parseTagsFromString(tagsInput)
+
+      const { data: post, error: postError } = await supabase
+        .from('posts')
+        .insert({
+          user_id: user.id,
+          image_url: imageUrl,
+          title: title.trim(),
+          description: description.trim() || null,
+          tags,
+          lat: location.lat,
+          lng: location.lng,
+          address: location.address || null,
+          city: location.city || null,
+          district: location.district || null,
+          visibility,
+        })
+        .select()
+        .single()
+
+      if (postError) throw new Error(`게시물 생성 실패: ${postError.message}`)
+
+      setUploadProgress(100)
+
+      // Success - navigate to the new post
+      setTimeout(() => {
+        router.replace(`/feed/${post.id}`)
+      }, 500)
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : '업로드 중 오류가 발생했습니다')
+      setStep('info')
+      setIsUploading(false)
+    }
+  }
+
+  const canProceedFromImage = !!selectedImage
+  const canProceedFromLocation = !!location
+  const canProceedFromInfo = title.trim().length >= 2
+
+  // Publishing state
+  if (step === 'publishing') {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
+        <div className="text-center space-y-6 max-w-xs">
+          <div className="relative w-20 h-20 mx-auto">
+            <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+            <div className="relative w-20 h-20 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center">
+              {uploadProgress < 100 ? (
+                <div className="loader" />
+              ) : (
+                <Check size={32} className="text-primary" />
+              )}
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-white font-bold text-xl mb-2">게시 중...</h2>
+            <p className="text-text-secondary text-sm">
+              도시의 캔버스에 작품을 올리고 있어요
+            </p>
+          </div>
+
+          {/* Progress bar */}
+          <div className="w-full bg-surface-2 rounded-full h-1.5">
+            <div
+              className="h-1.5 bg-primary rounded-full transition-all duration-500"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+          <p className="text-text-secondary text-sm">{uploadProgress}%</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 pt-safe-top h-14">
+        <button onClick={handleBack} className="p-2 -ml-2 tap-highlight-none">
+          <ArrowLeft size={24} className="text-white" />
+        </button>
+
+        <h1 className="text-white font-semibold">새 게시물</h1>
+
+        <button
+          onClick={() => router.back()}
+          className="p-2 -mr-2 tap-highlight-none"
+        >
+          <X size={24} className="text-text-secondary" />
+        </button>
+      </div>
+
+      {/* Step indicator */}
+      <div className="px-4 pb-4">
+        <div className="flex items-center gap-2">
+          {STEPS.map((s, i) => (
+            <div key={s.key} className="flex items-center gap-2 flex-1">
+              <div className="flex items-center gap-2">
+                <div
+                  className={cn(
+                    'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300',
+                    i < currentStepIndex
+                      ? 'bg-primary text-white'
+                      : i === currentStepIndex
+                      ? 'bg-primary text-white ring-2 ring-primary/30 ring-offset-2 ring-offset-background'
+                      : 'bg-surface-2 text-text-secondary'
+                  )}
+                >
+                  {i < currentStepIndex ? <Check size={14} /> : i + 1}
+                </div>
+                <span
+                  className={cn(
+                    'text-xs font-medium',
+                    i <= currentStepIndex ? 'text-white' : 'text-text-secondary'
+                  )}
+                >
+                  {s.label}
+                </span>
+              </div>
+              {i < STEPS.length - 1 && (
+                <div
+                  className={cn(
+                    'flex-1 h-px transition-all duration-300',
+                    i < currentStepIndex ? 'bg-primary' : 'bg-border'
+                  )}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Step content */}
+      <div className="flex-1 overflow-y-auto">
+        {step === 'image' && (
+          <div className="px-4 pb-4">
+            <ImagePicker
+              onSelect={handleImageSelect}
+              selectedImage={selectedImage}
+              preview={imagePreview}
+            />
+          </div>
+        )}
+
+        {step === 'location' && (
+          <div className="pb-4">
+            <LocationPicker
+              onLocationSelect={setLocation}
+              initialLocation={location}
+            />
+          </div>
+        )}
+
+        {step === 'info' && (
+          <div className="px-4 pb-4 space-y-4">
+            {/* Image thumbnail */}
+            {imagePreview && (
+              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-surface-2">
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-full h-full object-cover"
+                />
+                {location?.address && (
+                  <div className="absolute bottom-3 left-3 right-3 glass rounded-xl px-3 py-2">
+                    <p className="text-white text-xs font-medium truncate">
+                      📍 {location.address}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Upload error */}
+            {uploadError && (
+              <div className="p-4 bg-error/10 border border-error/30 rounded-2xl">
+                <p className="text-error text-sm">{uploadError}</p>
+              </div>
+            )}
+
+            {/* Title */}
+            <div>
+              <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
+                제목 *
+              </label>
+              <Input
+                type="text"
+                placeholder="이 작품의 제목은?"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                maxLength={60}
+              />
+              <p className="text-text-muted text-xs mt-1 text-right">
+                {title.length}/60
+              </p>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
+                설명
+              </label>
+              <textarea
+                placeholder="이 작품에 대해 이야기해주세요..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                maxLength={500}
+                rows={4}
+                className="input-base resize-none"
+              />
+              <p className="text-text-muted text-xs mt-1 text-right">
+                {description.length}/500
+              </p>
+            </div>
+
+            {/* Tags */}
+            <div>
+              <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
+                태그
+              </label>
+              <Input
+                type="text"
+                placeholder="#graffiti #streetart #서울"
+                value={tagsInput}
+                onChange={(e) => setTagsInput(e.target.value)}
+              />
+              <p className="text-text-muted text-xs mt-1">
+                쉼표나 공백으로 구분, # 자동 제거
+              </p>
+            </div>
+
+            {/* Visibility */}
+            <div>
+              <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
+                공개 범위
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { value: 'public', label: '전체 공개', emoji: '🌍' },
+                  { value: 'followers', label: '팔로워', emoji: '👥' },
+                  { value: 'private', label: '나만 보기', emoji: '🔒' },
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setVisibility(opt.value)}
+                    className={cn(
+                      'flex flex-col items-center gap-1 py-3 rounded-2xl border transition-all duration-200 tap-highlight-none',
+                      visibility === opt.value
+                        ? 'bg-primary/10 border-primary/40 text-primary'
+                        : 'bg-surface-2 border-border text-text-secondary'
+                    )}
+                  >
+                    <span className="text-xl">{opt.emoji}</span>
+                    <span className="text-xs font-medium">{opt.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom action */}
+      <div className="px-4 pb-safe-bottom pb-4 pt-3 border-t border-border bg-background">
+        {step === 'info' ? (
+          <Button
+            onClick={handlePublish}
+            fullWidth
+            size="lg"
+            disabled={!canProceedFromInfo || isUploading}
+            isLoading={isUploading}
+          >
+            <span className="flex items-center gap-2">
+              게시하기
+              <Check size={18} />
+            </span>
+          </Button>
+        ) : (
+          <Button
+            onClick={handleNext}
+            fullWidth
+            size="lg"
+            disabled={
+              (step === 'image' && !canProceedFromImage) ||
+              (step === 'location' && !canProceedFromLocation)
+            }
+          >
+            <span className="flex items-center gap-2">
+              다음
+              <ArrowRight size={18} />
+            </span>
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+}
