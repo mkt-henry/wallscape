@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, MessageCircle, Bookmark, MapPin, MoreHorizontal, Images, Archive, EyeOff } from 'lucide-react'
+import { Heart, MessageCircle, Bookmark, MapPin, MoreHorizontal, Archive, EyeOff } from 'lucide-react'
 import { useLikePost, useBookmarkPost, useArchivePost } from '@/hooks/usePosts'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Avatar } from '@/components/ui/Avatar'
@@ -114,14 +114,6 @@ export function PostCard({ post, showLocation = true, priority = false }: PostCa
               onLoad={() => setIsImageLoaded(true)}
               onError={() => { setImageError(true); setIsImageLoaded(true) }}
             />
-          )}
-
-          {/* Multiple images badge */}
-          {post.image_urls?.length > 1 && (
-            <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/60 rounded-full px-2 py-1">
-              <Images size={13} className="text-white" />
-              <span className="text-white text-xs font-medium">{post.image_urls.length}</span>
-            </div>
           )}
 
           {/* Double tap heart animation */}

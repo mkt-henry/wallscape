@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -30,14 +30,6 @@ export default function PostDetailPage({ params }: Props) {
 
   const [comment, setComment] = useState('')
   const [showAllComments, setShowAllComments] = useState(false)
-  const [activeImageIndex, setActiveImageIndex] = useState(0)
-  const carouselRef = useRef<HTMLDivElement>(null)
-
-  const handleCarouselScroll = useCallback(() => {
-    if (!carouselRef.current) return
-    const { scrollLeft, offsetWidth } = carouselRef.current
-    setActiveImageIndex(Math.round(scrollLeft / offsetWidth))
-  }, [])
 
   const { data: post, isLoading } = usePost(id)
   const { data: comments = [], isLoading: isCommentsLoading } = useComments(id)
@@ -111,42 +103,16 @@ export default function PostDetailPage({ params }: Props) {
     )
   }
 
-  const images = post.image_urls?.length > 0 ? post.image_urls : [post.image_url]
-
-  const carousel = (
-    <div className="relative bg-surface-2">
-      <div
-        ref={carouselRef}
-        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
-        onScroll={handleCarouselScroll}
-      >
-        {images.map((url, i) => (
-          <div key={i} className="flex-shrink-0 w-full aspect-square relative snap-start">
-            <Image
-              src={url}
-              alt={`${post.title} ${i + 1}`}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority={i === 0}
-            />
-          </div>
-        ))}
-      </div>
-      {images.length > 1 && (
-        <>
-          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
-            {images.map((_, i) => (
-              <div key={i} className={cn('rounded-full transition-all duration-200',
-                i === activeImageIndex ? 'w-4 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/50'
-              )} />
-            ))}
-          </div>
-          <div className="absolute top-3 right-3 bg-black/60 rounded-full px-2.5 py-1 text-white text-xs font-medium">
-            {activeImageIndex + 1} / {images.length}
-          </div>
-        </>
-      )}
+  const postImage = (
+    <div className="relative bg-surface-2 aspect-square w-full">
+      <Image
+        src={post.image_url}
+        alt={post.title}
+        fill
+        className="object-cover"
+        sizes="(max-width: 768px) 100vw, 50vw"
+        priority
+      />
     </div>
   )
 
@@ -312,7 +278,7 @@ export default function PostDetailPage({ params }: Props) {
 
       {/* Mobile layout — stacked */}
       <div className="md:hidden">
-        {carousel}
+        {postImage}
         <div className="px-4 py-4 space-y-4">
           {postInfo}
           <div className="h-px bg-border" />
@@ -348,7 +314,7 @@ export default function PostDetailPage({ params }: Props) {
         <div className="grid grid-cols-[1fr_400px] lg:grid-cols-[1fr_440px] gap-6 items-start">
           {/* Left: image carousel */}
           <div className="rounded-2xl overflow-hidden sticky top-20">
-            {carousel}
+            {postImage}
           </div>
 
           {/* Right: info + comments */}

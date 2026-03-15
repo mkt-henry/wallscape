@@ -14,7 +14,7 @@ const POST_SELECT = `
   id, user_id, image_url, thumbnail_url, title, description, tags,
   lat, lng, address, city, district,
   like_count, comment_count, bookmark_count, view_count,
-  visibility, status, archived_at, created_at, updated_at,
+  visibility, created_at, updated_at,
   profiles(id, username, display_name, avatar_url),
   likes(user_id)
 `
@@ -64,7 +64,6 @@ export function useInfiniteFeed(params: FeedParams) {
           .from('posts')
           .select(POST_SELECT)
           .eq('visibility', 'public')
-          .eq('status', 'public')
           .in('user_id', followingIds)
           .order('created_at', { ascending: false })
           .limit(LIMIT)
@@ -95,7 +94,6 @@ export function useInfiniteFeed(params: FeedParams) {
         .from('posts')
         .select(POST_SELECT)
         .eq('visibility', 'public')
-        .eq('status', 'public')
         .limit(LIMIT)
 
       if (params.sort === 'popular') {
@@ -165,7 +163,6 @@ export function useUserPosts(userId: string) {
         .from('posts')
         .select(POST_SELECT)
         .eq('user_id', userId)
-        .eq('status', 'public')
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -333,13 +330,9 @@ export function useArchivePost() {
       if (!user) throw new Error('로그인이 필요합니다')
       const supabase = getSupabaseClient()
 
-      const updates = isArchived
-        ? { status: 'public', archived_at: null }
-        : { status: 'archived', archived_at: new Date().toISOString() }
-
       const { error } = await supabase
         .from('posts')
-        .update(updates)
+        .update({ visibility: isArchived ? 'public' : 'private' })
         .eq('id', postId)
         .eq('user_id', user.id)
       if (error) throw error
@@ -366,8 +359,8 @@ export function useArchivedPosts(userId: string) {
         .from('posts')
         .select(POST_SELECT)
         .eq('user_id', userId)
-        .eq('status', 'archived')
-        .order('archived_at', { ascending: false })
+        .eq('visibility', 'private')
+        .order('created_at', { ascending: false })
       if (error) throw error
       return ((data ?? []) as Record<string, unknown>[]).map((p) => mapPost(p, user?.id))
     },

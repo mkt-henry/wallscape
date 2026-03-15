@@ -47,7 +47,6 @@ export interface Post {
   id: string
   user_id: string
   image_url: string
-  image_urls: string[]
   thumbnail_url: string | null
   title: string
   description: string | null
