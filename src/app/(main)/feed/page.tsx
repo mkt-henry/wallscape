@@ -7,6 +7,7 @@ import { useInfiniteFeed } from '@/hooks/usePosts'
 import { useLocation } from '@/hooks/useLocation'
 import { PostCard } from '@/components/feed/PostCard'
 import { cn } from '@/lib/utils'
+import { Logo } from '@/components/ui/Logo'
 import type { FeedSortType } from '@/types'
 
 const FEED_TABS: { key: FeedSortType; label: string }[] = [
@@ -90,12 +91,7 @@ export default function FeedPage() {
         <div className="max-w-3xl mx-auto px-4">
           {/* Mobile: logo row */}
           <div className="flex items-center justify-between h-14 md:hidden">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center">
-                <span className="text-sm font-black text-white">W</span>
-              </div>
-              <span className="text-lg font-black text-white tracking-wide">WALLSCAPE</span>
-            </div>
+            <Logo size="md" showText />
             <div className="flex items-center gap-1">
               <Link href="/search" className="p-2 tap-highlight-none">
                 <Search size={22} className="text-white" />

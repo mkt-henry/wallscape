@@ -53,8 +53,8 @@ const TYPE_META: Record<
 > = {
   feedback: {
     label: '피드백',
-    color: 'text-orange-400',
-    bgColor: 'bg-orange-500/20 border-orange-500/30',
+    color: 'text-fuchsia-400',
+    bgColor: 'bg-fuchsia-500/20 border-fuchsia-500/30',
     Icon: MessageSquare,
   },
   bug: {

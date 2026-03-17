@@ -25,8 +25,8 @@ const SIZE_CONFIG: Record<AvatarSize, { px: number; text: string; className: str
 // Generate a consistent color from username
 function getAvatarColor(username: string): string {
   const colors = [
-    '#FF6B35', // primary
-    '#4ECDC4', // secondary
+    '#D946EF', // primary
+    '#22D3EE', // secondary
     '#A855F7', // purple
     '#3B82F6', // blue
     '#10B981', // green
@@ -130,7 +130,7 @@ export function AvatarGroup({ users, max = 3, size = 'xs' }: AvatarGroupProps) {
             username={user.username}
             size={size}
             showBorder
-            borderColor="#0A0A0A"
+            borderColor="#08080C"
           />
         </div>
       ))}

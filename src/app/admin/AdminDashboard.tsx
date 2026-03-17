@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import FeedbackPanel from './FeedbackPanel'
 import AccountsPanel from './AccountsPanel'
+import { Logo } from '@/components/ui/Logo'
 
 type AdminTab = 'feedback' | 'accounts'
 
@@ -32,9 +33,7 @@ export default function AdminDashboard() {
               </Link>
               <div className="w-px h-4 bg-white/10 shrink-0" />
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center shrink-0">
-                  <span className="text-xs font-black text-white">W</span>
-                </div>
+                <Logo size="sm" />
                 <span className="text-sm font-bold truncate">관리자</span>
               </div>
             </div>

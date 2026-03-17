@@ -18,10 +18,10 @@ interface MiniMapProps {
 }
 
 function createMarkerContent(imageUrl: string, isHighlighted: boolean): string {
-  const borderColor = isHighlighted ? '#4ECDC4' : '#FF6B35'
+  const borderColor = isHighlighted ? '#22D3EE' : '#D946EF'
   const shadow = isHighlighted
-    ? '0 2px 16px rgba(78, 205, 196, 0.7)'
-    : '0 2px 10px rgba(255, 107, 53, 0.4)'
+    ? '0 2px 16px rgba(34, 211, 238, 0.7)'
+    : '0 2px 10px rgba(217, 70, 239, 0.4)'
   const size = isHighlighted ? '52' : '40'
   const scale = isHighlighted ? 'transform: scale(1.0);' : ''
 
@@ -30,11 +30,11 @@ function createMarkerContent(imageUrl: string, isHighlighted: boolean): string {
     border-radius: 50%; overflow: hidden;
     border: 3px solid ${borderColor};
     box-shadow: ${shadow};
-    background: #1A1A1A;
+    background: #13131A;
     ${scale}
   ">
     <img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;"
-      onerror="this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;background:#FF6B35;display:flex;align-items:center;justify-content:center;font-size:14px;\\'>🎨</div>'"
+      onerror="this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;background:#D946EF;display:flex;align-items:center;justify-content:center;font-size:14px;\\'>🎨</div>'"
     />
   </div>`
 }

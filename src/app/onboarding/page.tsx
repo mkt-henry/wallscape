@@ -27,7 +27,7 @@ const slides: Slide[] = [
     description:
       '내 주변 수백 미터 안에 숨어있는 그라피티와 스트릿 아트를 지도 위에서 발견하세요. 매일 새로운 작품들이 도시를 물들입니다.',
     gradient: 'from-primary/20 via-background to-background',
-    accentColor: '#FF6B35',
+    accentColor: '#D946EF',
   },
   {
     id: 2,
@@ -38,7 +38,7 @@ const slides: Slide[] = [
     description:
       '사진을 찍으면 자동으로 위치 정보를 인식합니다. 태그와 설명을 추가해 당신만의 스트릿 아트 아카이브를 만들어보세요.',
     gradient: 'from-secondary/20 via-background to-background',
-    accentColor: '#4ECDC4',
+    accentColor: '#22D3EE',
   },
   {
     id: 3,

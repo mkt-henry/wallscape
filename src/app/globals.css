@@ -6,13 +6,14 @@
    CSS Custom Properties
    ============================================================ */
 :root {
-  --color-bg: #0A0A0A;
-  --color-surface: #1A1A1A;
-  --color-surface-2: #242424;
-  --color-primary: #FF6B35;
-  --color-secondary: #4ECDC4;
+  --color-bg: #08080C;
+  --color-surface: #13131A;
+  --color-surface-2: #1C1C26;
+  --color-primary: #D946EF;
+  --color-secondary: #22D3EE;
+  --color-accent: #CCFF00;
   --color-text: #FFFFFF;
-  --color-text-secondary: #A0A0A0;
+  --color-text-secondary: #9CA3AF;
 
   --font-sans: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont,
     'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
@@ -32,7 +33,6 @@
 
 html {
   overflow-x: hidden;
-  /* Prevent double-tap zoom on all touch interactions */
   touch-action: manipulation;
 }
 
@@ -46,15 +46,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Prevent elastic scroll on iOS */
 html {
   height: -webkit-fill-available;
 }
 
-/* Prevent mobile browser auto-zoom on input focus.
-   Chrome/Safari zoom when input font-size < 16px.
-   Applied globally — the visual difference (14px→16px) is negligible
-   and this is the ONLY reliable way to prevent zoom across all browsers. */
 input,
 textarea,
 select {
@@ -64,7 +59,6 @@ select {
 body {
   min-height: 100vh;
   min-height: -webkit-fill-available;
-  /* Dynamic viewport height for mobile browsers */
   min-height: 100dvh;
 }
 
@@ -81,15 +75,14 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3E3E3E;
+  background: #363645;
   border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555555;
+  background: #4A4A5A;
 }
 
-/* Hide scrollbar for feed/map containers */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -140,7 +133,7 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px #1A1A1A inset !important;
+  -webkit-box-shadow: 0 0 0 30px #13131A inset !important;
   -webkit-text-fill-color: #ffffff !important;
 }
 
@@ -199,14 +192,13 @@ button:disabled {
   height: 100%;
 }
 
-/* Custom marker styles */
 .map-marker {
   width: 48px;
   height: 48px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid #FF6B35;
-  box-shadow: 0 2px 12px rgba(255, 107, 53, 0.5);
+  border: 3px solid #D946EF;
+  box-shadow: 0 2px 12px rgba(217, 70, 239, 0.5);
   cursor: pointer;
   transition: transform 0.2s ease;
 }
@@ -216,8 +208,8 @@ button:disabled {
 }
 
 .map-marker.selected {
-  border-color: #4ECDC4;
-  box-shadow: 0 2px 16px rgba(78, 205, 196, 0.6);
+  border-color: #22D3EE;
+  box-shadow: 0 2px 16px rgba(34, 211, 238, 0.6);
   transform: scale(1.15);
 }
 
@@ -264,7 +256,6 @@ button:disabled {
            px-3 py-1 rounded-full border border-border;
   }
 
-  /* Hide scrollbar but keep scroll functional */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -288,8 +279,8 @@ button:disabled {
   .gradient-overlay {
     background: linear-gradient(
       to top,
-      rgba(10, 10, 10, 0.9) 0%,
-      rgba(10, 10, 10, 0.4) 50%,
+      rgba(8, 8, 12, 0.9) 0%,
+      rgba(8, 8, 12, 0.4) 50%,
       transparent 100%
     );
   }
@@ -311,18 +302,31 @@ button:disabled {
     touch-action: manipulation;
   }
 
+  /* Brand gradient text — matches logo pink → cyan → yellow */
+  .text-gradient-brand {
+    background: linear-gradient(135deg, #D946EF, #22D3EE, #CCFF00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
   .text-gradient-primary {
-    background: linear-gradient(135deg, #FF6B35, #FF9A5C);
+    background: linear-gradient(135deg, #D946EF, #A855F7);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .text-gradient-secondary {
-    background: linear-gradient(135deg, #4ECDC4, #7EDBD4);
+    background: linear-gradient(135deg, #22D3EE, #06B6D4);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  /* Brand gradient background */
+  .bg-gradient-brand {
+    background: linear-gradient(135deg, #D946EF, #22D3EE, #CCFF00);
   }
 }
 
@@ -332,8 +336,8 @@ button:disabled {
 .loader {
   width: 24px;
   height: 24px;
-  border: 3px solid rgba(255, 107, 53, 0.2);
-  border-top-color: #FF6B35;
+  border: 3px solid rgba(217, 70, 239, 0.2);
+  border-top-color: #D946EF;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -350,9 +354,9 @@ button:disabled {
 .skeleton {
   background: linear-gradient(
     90deg,
-    #1A1A1A 25%,
-    #242424 50%,
-    #1A1A1A 75%
+    #13131A 25%,
+    #1C1C26 50%,
+    #13131A 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
@@ -384,7 +388,7 @@ button:disabled {
   bottom: 0;
   left: 0;
   right: 0;
-  background: #1A1A1A;
+  background: #13131A;
   border-radius: 24px 24px 0 0;
   z-index: 50;
   animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
@@ -394,13 +398,13 @@ button:disabled {
 
 @media (min-width: 768px) {
   .bottom-sheet-content {
-    left: 4rem; /* offset for md sidebar (w-16) */
+    left: 4rem;
   }
 }
 
 @media (min-width: 1024px) {
   .bottom-sheet-content {
-    left: 14rem; /* offset for lg sidebar (w-56) */
+    left: 14rem;
   }
 }
 

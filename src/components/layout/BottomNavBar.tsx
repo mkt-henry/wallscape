@@ -48,7 +48,7 @@ export function BottomNavBar() {
                 href={item.href}
                 className="flex-1 flex justify-center py-3 tap-highlight-none"
               >
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center shadow-glow-primary transition-transform active:scale-90">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-brand flex items-center justify-center shadow-glow-primary transition-transform active:scale-90">
                   <Icon size={24} className="text-white" strokeWidth={2} />
                 </div>
               </Link>

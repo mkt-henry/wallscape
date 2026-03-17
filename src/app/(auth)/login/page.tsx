@@ -7,6 +7,7 @@ import { Eye, EyeOff, ArrowLeft, Mail } from 'lucide-react'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { Logo } from '@/components/ui/Logo'
 
 function GoogleIcon() {
   return (
@@ -99,8 +100,8 @@ function LoginForm() {
       <div className="flex-1 flex flex-col justify-center px-6 pb-8">
         {/* Brand */}
         <div className="mb-10">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center mb-6 shadow-glow-primary">
-            <span className="text-2xl font-black text-white">W</span>
+          <div className="mb-6">
+            <Logo size="lg" />
           </div>
           <h1 className="text-3xl font-black text-white mb-2">다시 돌아왔군요</h1>
           <p className="text-text-secondary">
@@ -199,6 +200,16 @@ function LoginForm() {
         >
           로그인 없이 둘러보기
         </button>
+      </div>
+
+      {/* Feedback link */}
+      <div className="px-6 pb-2 text-center">
+        <Link
+          href="/feedback"
+          className="text-text-muted text-sm underline underline-offset-2 tap-highlight-none"
+        >
+          문의 · 피드백 남기기
+        </Link>
       </div>
 
       {/* Sign up link */}

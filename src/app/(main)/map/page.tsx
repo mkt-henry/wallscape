@@ -3,10 +3,12 @@
 import { Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { Search, Layers, Navigation, X } from 'lucide-react'
+import { Search, Layers, Navigation } from 'lucide-react'
 import { useMapStore } from '@/stores/useMapStore'
 import { useLocation } from '@/hooks/useLocation'
+import { useNearbyPosts } from '@/hooks/useNearbyPosts'
 import { MarkerBottomSheet } from '@/components/map/MarkerBottomSheet'
+import { loadKakaoScript } from '@/lib/kakao'
 
 // Load Kakao map only on client
 const KakaoMap = dynamic(
@@ -24,10 +26,18 @@ const KakaoMap = dynamic(
   }
 )
 
+// Prefetch Kakao SDK as early as possible (parallel with data fetch)
+if (typeof window !== 'undefined') {
+  loadKakaoScript().catch(() => {})
+}
+
 function MapContent() {
   const searchParams = useSearchParams()
   const { center, setCenter, isBottomSheetOpen, closePostSheet } = useMapStore()
   const { location, requestLocation } = useLocation()
+
+  // Fetch nearby posts immediately — no need to wait for Kakao SDK
+  const { data: nearbyPosts } = useNearbyPosts(center.lat, center.lng)
 
   // Handle URL params
   useEffect(() => {
@@ -50,7 +60,7 @@ function MapContent() {
     <div className="relative w-full h-dvh bg-background overflow-hidden">
       {/* Map fills entire screen */}
       <div className="absolute inset-0">
-        <KakaoMap />
+        <KakaoMap prefetchedPosts={nearbyPosts} />
       </div>
 
       {/* Top search bar overlay */}
@@ -82,7 +92,7 @@ function MapContent() {
           <Navigation
             size={20}
             className={location ? 'text-primary' : 'text-white'}
-            fill={location ? '#FF6B35' : 'none'}
+            fill={location ? '#D946EF' : 'none'}
           />
         </button>
       </div>
@@ -91,7 +101,7 @@ function MapContent() {
       <div className="absolute left-4 bottom-[calc(80px+env(safe-area-inset-bottom))] md:bottom-6 z-10">
         <div className="glass rounded-2xl px-4 py-2 shadow-card">
           <p className="text-white text-xs font-semibold">이 지역 게시물</p>
-          <p className="text-primary text-lg font-black leading-tight">-</p>
+          <p className="text-primary text-lg font-black leading-tight">{nearbyPosts?.length ?? '-'}</p>
         </div>
       </div>
 

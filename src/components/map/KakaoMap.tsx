@@ -1,20 +1,19 @@
 'use client'
 
-import { useEffect, useRef, useCallback, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { getSupabaseClient } from '@/lib/supabase/client'
+import { useEffect, useRef, useState } from 'react'
 import { useMapStore } from '@/stores/useMapStore'
 import { useLocation } from '@/hooks/useLocation'
+import { useNearbyPosts } from '@/hooks/useNearbyPosts'
 import type { NearbyPost } from '@/types'
 
 import { loadKakaoScript } from '@/lib/kakao'
 
 // Custom marker HTML for a post thumbnail
 function createMarkerContent(imageUrl: string, isSelected: boolean): string {
-  const borderColor = isSelected ? '#4ECDC4' : '#FF6B35'
+  const borderColor = isSelected ? '#22D3EE' : '#D946EF'
   const shadow = isSelected
-    ? '0 2px 16px rgba(78, 205, 196, 0.6)'
-    : '0 2px 12px rgba(255, 107, 53, 0.4)'
+    ? '0 2px 16px rgba(34, 211, 238, 0.6)'
+    : '0 2px 12px rgba(217, 70, 239, 0.4)'
 
   return `
     <div style="
@@ -26,22 +25,28 @@ function createMarkerContent(imageUrl: string, isSelected: boolean): string {
       box-shadow: ${shadow};
       cursor: pointer;
       transition: transform 0.2s ease;
-      background: #1A1A1A;
+      background: #13131A;
     ">
       <img
         src="${imageUrl}"
         style="width: 100%; height: 100%; object-fit: cover;"
-        onerror="this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;background:#FF6B35;display:flex;align-items:center;justify-content:center;font-size:18px;\\'>🎨</div>'"
+        onerror="this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;background:#D946EF;display:flex;align-items:center;justify-content:center;font-size:18px;\\'>🎨</div>'"
       />
     </div>
   `
 }
 
-export function KakaoMap() {
+interface KakaoMapProps {
+  prefetchedPosts?: NearbyPost[]
+}
+
+export function KakaoMap({ prefetchedPosts }: KakaoMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<unknown>(null)
   const clustererRef = useRef<unknown>(null)
   const overlaysRef = useRef<Map<string, unknown>>(new Map())
+  const isProgrammaticMoveRef = useRef(false)
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [isKakaoLoaded, setIsKakaoLoaded] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -58,24 +63,10 @@ export function KakaoMap() {
   } = useMapStore()
 
   const { location } = useLocation()
-  const supabase = getSupabaseClient()
 
-  // Fetch nearby posts based on current map center
-  const { data: nearbyPosts } = useQuery({
-    queryKey: ['nearby-posts', center.lat, center.lng],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_nearby_posts', {
-        user_lat: center.lat,
-        user_lng: center.lng,
-        radius_meters: 5000,
-        post_limit: 100,
-      })
-
-      if (error) throw error
-      return (data || []) as NearbyPost[]
-    },
-    staleTime: 30_000,
-  })
+  // Use prefetched posts from parent, also fetch from map's own center on pan
+  const { data: localPosts } = useNearbyPosts(center.lat, center.lng)
+  const nearbyPosts = localPosts ?? prefetchedPosts
 
   // Load Kakao Maps SDK
   useEffect(() => {
@@ -108,10 +99,14 @@ export function KakaoMap() {
     })
     clustererRef.current = clusterer
 
-    // Listen for map events
+    // Debounced center update: wait until map stops moving for 500ms
     kakao.maps.event.addListener(map, 'center_changed', () => {
-      const newCenter = map.getCenter()
-      setCenter({ lat: newCenter.getLat(), lng: newCenter.getLng() })
+      if (isProgrammaticMoveRef.current) return
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current)
+      idleTimerRef.current = setTimeout(() => {
+        const c = map.getCenter()
+        setCenter({ lat: c.getLat(), lng: c.getLng() })
+      }, 500)
     })
 
     kakao.maps.event.addListener(map, 'zoom_changed', () => {
@@ -121,18 +116,32 @@ export function KakaoMap() {
     setMapLoaded(true)
 
     return () => {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current)
       mapInstanceRef.current = null
       clustererRef.current = null
     }
   }, [isKakaoLoaded]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Update map center when store changes (from URL params or location)
+  // Update map center when store changes (from URL params or "my location" button)
+  // Skip if the map center already matches (i.e. change came from the map itself)
   useEffect(() => {
     if (!isKakaoLoaded || !mapInstanceRef.current) return
     const kakao = window.kakao
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const map = mapInstanceRef.current as any
+    const current = map.getCenter()
+
+    // Only move the map if the center is meaningfully different (> ~10m)
+    const latDiff = Math.abs(current.getLat() - center.lat)
+    const lngDiff = Math.abs(current.getLng() - center.lng)
+    if (latDiff < 0.0001 && lngDiff < 0.0001) return
+
+    isProgrammaticMoveRef.current = true
     map.setCenter(new kakao.maps.LatLng(center.lat, center.lng))
+    // Reset flag after a short delay to allow the event to fire and be ignored
+    setTimeout(() => {
+      isProgrammaticMoveRef.current = false
+    }, 100)
   }, [center, isKakaoLoaded])
 
   // Render post markers when posts change
@@ -184,9 +193,9 @@ export function KakaoMap() {
         width: 20px;
         height: 20px;
         border-radius: 50%;
-        background: #4ECDC4;
+        background: #22D3EE;
         border: 3px solid white;
-        box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.3);
+        box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.3);
       "></div>
     `
 
@@ -218,7 +227,7 @@ export function KakaoMap() {
     <div
       ref={mapContainerRef}
       className="w-full h-full kakao-map-container"
-      style={{ background: '#0A0A0A' }}
+      style={{ background: '#08080C' }}
     />
   )
 }

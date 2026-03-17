@@ -23,11 +23,11 @@ function getPasswordStrength(password: string): PasswordStrength {
   if (/[0-9]/.test(password)) score++
   if (/[^A-Za-z0-9]/.test(password)) score++
 
-  if (score <= 1) return { score, label: '매우 약함', color: '#FF4444' }
-  if (score === 2) return { score, label: '약함', color: '#FF8855' }
-  if (score === 3) return { score, label: '보통', color: '#FFB344' }
-  if (score === 4) return { score, label: '강함', color: '#44CC88' }
-  return { score, label: '매우 강함', color: '#44FF88' }
+  if (score <= 1) return { score, label: '매우 약함', color: '#FF4466' }
+  if (score === 2) return { score, label: '약함', color: '#D946EF' }
+  if (score === 3) return { score, label: '보통', color: '#FBBF24' }
+  if (score === 4) return { score, label: '강함', color: '#22D3EE' }
+  return { score, label: '매우 강함', color: '#CCFF00' }
 }
 
 export default function SignupPage() {
@@ -233,7 +233,7 @@ export default function SignupPage() {
                         backgroundColor:
                           i < passwordStrength.score
                             ? passwordStrength.color
-                            : '#2E2E2E',
+                            : '#262632',
                       }}
                     />
                   ))}

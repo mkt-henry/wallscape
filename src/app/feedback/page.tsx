@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Mail, Clock, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { Logo } from '@/components/ui/Logo'
 
 type FeedbackType = 'feedback' | 'bug' | 'contact' | 'partnership'
 
@@ -35,16 +35,7 @@ function validateEmail(email: string) {
 }
 
 export default function FeedbackPage() {
-  const router = useRouter()
-  const { user, isLoading: authLoading } = useAuthStore()
-
-  const { profile } = useAuthStore()
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace('/login?redirectTo=/feedback')
-    }
-  }, [user, authLoading, router])
+  const { user, profile } = useAuthStore()
 
   const [form, setForm] = useState<FormState>({
     name: '',
@@ -118,14 +109,6 @@ export default function FeedbackPage() {
     }
   }
 
-  if (authLoading || (!user && !authLoading)) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="loader" />
-      </div>
-    )
-  }
-
   if (submitStatus === 'success') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
@@ -169,12 +152,7 @@ export default function FeedbackPage() {
             <ArrowLeft size={16} />
             <span className="text-sm">홈</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center">
-              <span className="text-xs font-black text-white">W</span>
-            </div>
-            <span className="text-sm font-black tracking-wide">WALLSCAPE</span>
-          </div>
+          <Logo size="xs" showText />
         </div>
       </nav>
 
@@ -321,10 +299,10 @@ export default function FeedbackPage() {
               </div>
               <h3 className="text-white font-bold text-base mb-1.5">이메일</h3>
               <a
-                href="mailto:bpark0718@gmail.com"
+                href="mailto:contact@bpstudio.co.kr"
                 className="text-primary text-sm hover:underline break-all"
               >
-                bpark0718@gmail.com
+                contact@bpstudio.co.kr
               </a>
               <p className="text-text-secondary text-xs mt-2 leading-relaxed">
                 파트너십 및 비즈니스 문의는<br />이메일로 직접 보내주셔도 됩니다.
@@ -333,8 +311,8 @@ export default function FeedbackPage() {
 
             {/* Response time card */}
             <div className="bg-surface rounded-3xl p-6 border border-white/5">
-              <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center mb-4">
-                <Clock size={22} className="text-teal-400" />
+              <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mb-4">
+                <Clock size={22} className="text-cyan-400" />
               </div>
               <h3 className="text-white font-bold text-base mb-1.5">답변 시간</h3>
               <p className="text-text-secondary text-sm leading-relaxed">
@@ -354,7 +332,7 @@ export default function FeedbackPage() {
                   {
                     type: '피드백',
                     desc: '기능 개선 및 의견 제안',
-                    color: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+                    color: 'bg-fuchsia-500/20 text-fuchsia-400 border-fuchsia-500/30',
                   },
                   {
                     type: '버그 신고',
@@ -390,12 +368,7 @@ export default function FeedbackPage() {
       {/* Footer */}
       <footer className="px-6 py-8 border-t border-white/5">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center">
-              <span className="text-xs font-black text-white">W</span>
-            </div>
-            <span className="text-sm font-bold text-white">WALLSCAPE</span>
-          </div>
+          <Logo size="xs" showText />
           <p className="text-text-muted text-xs">© 2025 Wallscape. 서울의 예술을 기록합니다.</p>
           <div className="flex items-center gap-4 text-xs text-text-muted">
             <Link href="/feed" className="hover:text-white transition-colors">피드</Link>

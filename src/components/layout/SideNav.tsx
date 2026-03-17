@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Map, PlusSquare, Bell, User, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Logo } from '@/components/ui/Logo'
 
 interface NavItem {
   href: string
@@ -31,11 +32,9 @@ export function SideNav() {
   return (
     <aside className="hidden md:flex flex-col fixed left-0 top-0 h-full z-50 w-16 lg:w-56 border-r border-border/50 bg-background/90 backdrop-blur-md">
       {/* Logo */}
-      <Link href="/" className="flex items-center gap-3 px-4 h-16 shrink-0 tap-highlight-none hover:opacity-80 transition-opacity">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center shadow-glow-primary shrink-0">
-          <span className="text-sm font-black text-white">W</span>
-        </div>
-        <span className="hidden lg:block text-base font-black tracking-wide text-white">WALLSCAPE</span>
+      <Link href="/" className="flex items-center px-4 h-16 shrink-0 tap-highlight-none hover:opacity-80 transition-opacity">
+        <Logo size="md" />
+        <span className="hidden lg:block text-base font-black tracking-wide text-white ml-3">WALLSCAPE</span>
       </Link>
 
       {/* Nav items */}
@@ -51,7 +50,7 @@ export function SideNav() {
                 href={item.href}
                 className="flex items-center gap-3 px-2 py-2.5 rounded-2xl tap-highlight-none group mt-1"
               >
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center shadow-glow-primary transition-transform group-active:scale-90 shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-gradient-brand flex items-center justify-center shadow-glow-primary transition-transform group-active:scale-90 shrink-0">
                   <Icon size={20} className="text-white" strokeWidth={2} />
                 </div>
                 <span className="hidden lg:block text-sm font-bold text-white">올리기</span>
