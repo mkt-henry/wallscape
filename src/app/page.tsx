@@ -1,18 +1,19 @@
 'use client'
 
-import { useEffect, Suspense } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, Camera, Users, Compass, ArrowRight, Star } from 'lucide-react'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { getSupabaseClient } from '@/lib/supabase/client'
 import { Logo } from '@/components/ui/Logo'
 
 const FEATURES = [
   {
     icon: MapPin,
     title: '위치 기반 발견',
-    desc: '내 주변 숨겨진 그라피티와 벽화를 지도에서 바로 찾아보세요.',
+    desc: '내 주변 숨겨진 그래피티와 벽화를 지도에서 바로 찾아보세요.',
     color: 'from-fuchsia-500/20 to-purple-500/20',
     iconColor: 'text-fuchsia-400',
   },
@@ -46,19 +47,20 @@ const STATS = [
   { value: '4.9', label: '평균 평점', icon: Star },
 ]
 
-const PREVIEW_IMAGES = [
-  { seed: 'wall3', area: '성수동' },
-  { seed: 'wall7', area: '해방촌' },
-  { seed: 'wall9', area: '익선동' },
-  { seed: 'wall4', area: '성수동' },
-  { seed: 'wall5', area: '을지로' },
-  { seed: 'wall1', area: '홍대' },
-]
+type PreviewPost = {
+  id: string
+  image_url: string
+  thumbnail_url: string | null
+  title: string
+  district: string | null
+  address: string | null
+}
 
 function LandingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { isInitialized, isLoading, user } = useAuthStore()
+  const [previewPosts, setPreviewPosts] = useState<PreviewPost[]>([])
 
   useEffect(() => {
     const code = searchParams.get('code')
@@ -66,6 +68,19 @@ function LandingContent() {
       router.replace(`/auth/callback?code=${code}`)
     }
   }, [router, searchParams])
+
+  useEffect(() => {
+    const supabase = getSupabaseClient()
+    supabase
+      .from('posts')
+      .select('id, image_url, thumbnail_url, title, district, address')
+      .eq('visibility', 'public')
+      .order('created_at', { ascending: false })
+      .limit(6)
+      .then(({ data }) => {
+        if (data && data.length > 0) setPreviewPosts(data)
+      })
+  }, [])
 
   return (
     <div className="min-h-screen bg-background text-white overflow-x-hidden">
@@ -132,7 +147,7 @@ function LandingContent() {
             </h1>
 
             <p className="text-text-secondary text-lg md:text-xl leading-relaxed max-w-xl mb-10">
-              골목 어딘가에 숨어있는 그라피티, 벽화, 스트릿 아트.<br />
+              골목 어딘가에 숨어있는 그래피티, 벽화, 스트릿 아트.<br />
               Wallscape로 기록하고 공유하세요.
             </p>
 
@@ -173,30 +188,39 @@ function LandingContent() {
       <section className="px-6 pb-20">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
-            {PREVIEW_IMAGES.map(({ seed, area }, i) => (
-              <Link
-                key={seed}
-                href="/feed"
-                className={`relative rounded-2xl overflow-hidden tap-highlight-none group
-                  ${i === 0 || i === 3 ? 'aspect-[3/4]' : 'aspect-square'}
-                `}
-              >
-                <Image
-                  src={`https://picsum.photos/seed/${seed}/400/500`}
-                  alt={area}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  sizes="(max-width: 768px) 33vw, 16vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-white text-xs font-semibold flex items-center gap-1">
-                    <MapPin size={10} />
-                    {area}
-                  </span>
-                </div>
-              </Link>
-            ))}
+            {previewPosts.length > 0
+              ? previewPosts.map((post, i) => (
+                  <Link
+                    key={post.id}
+                    href={`/feed/${post.id}`}
+                    className={`relative rounded-2xl overflow-hidden tap-highlight-none group
+                      ${i === 0 || i === 3 ? 'aspect-[3/4]' : 'aspect-square'}
+                    `}
+                  >
+                    <Image
+                      src={post.thumbnail_url ?? post.image_url}
+                      alt={post.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 768px) 33vw, 16vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <span className="text-white text-xs font-semibold flex items-center gap-1">
+                        <MapPin size={10} />
+                        {post.district || post.address || '서울'}
+                      </span>
+                    </div>
+                  </Link>
+                ))
+              : Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`relative rounded-2xl bg-surface animate-pulse
+                      ${i === 0 || i === 3 ? 'aspect-[3/4]' : 'aspect-square'}
+                    `}
+                  />
+                ))}
           </div>
         </div>
       </section>
