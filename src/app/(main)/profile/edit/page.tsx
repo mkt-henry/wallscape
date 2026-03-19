@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Globe, MapPin, FileText, User } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Avatar } from '@/components/ui/Avatar'
@@ -11,6 +12,7 @@ import { Input } from '@/components/ui/Input'
 
 export default function ProfileEditPage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { user, profile, updateProfile } = useAuthStore()
   const supabase = getSupabaseClient()
 
@@ -49,6 +51,11 @@ export default function ProfileEditPage() {
     }
 
     updateProfile(updates)
+    // 프로필 쿼리 캐시 즉시 반영
+    queryClient.setQueryData(['profile', profile.username], (old: Record<string, unknown>) => ({
+      ...old,
+      ...updates,
+    }))
     router.back()
   }
 

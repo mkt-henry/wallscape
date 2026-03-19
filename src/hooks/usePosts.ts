@@ -346,7 +346,7 @@ export function useComments(postId: string) {
 
 export function useAddComment() {
   const queryClient = useQueryClient()
-  const { user } = useAuthStore()
+  const { user, profile } = useAuthStore()
 
   return useMutation({
     mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
@@ -360,12 +360,48 @@ export function useAddComment() {
       if (error) throw error
       return data
     },
-    onSuccess: async (_, { postId }) => {
-      // Sync comment_count via API route (bypasses RLS)
-      await syncCount(postId, 'comment')
+    onMutate: async ({ postId, content }) => {
+      await queryClient.cancelQueries({ queryKey: ['comments', postId] })
+      const previous = queryClient.getQueryData(['comments', postId])
 
-      queryClient.invalidateQueries({ queryKey: ['comments', postId] })
+      const optimisticComment = {
+        id: `optimistic-${Date.now()}`,
+        post_id: postId,
+        user_id: user?.id ?? '',
+        content,
+        parent_id: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        profiles: {
+          id: user?.id ?? '',
+          username: profile?.username ?? '',
+          display_name: profile?.display_name ?? null,
+          avatar_url: profile?.avatar_url ?? null,
+        },
+      }
+
+      queryClient.setQueryData(['comments', postId], (old: unknown[]) => [
+        ...(Array.isArray(old) ? old : []),
+        optimisticComment,
+      ])
+
+      return { previous, postId }
+    },
+    onError: (_, __, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(['comments', context.postId], context.previous)
+      }
+    },
+    onSuccess: (data, { postId }) => {
+      // 실제 데이터로 교체
+      queryClient.setQueryData(['comments', postId], (old: unknown[]) =>
+        (Array.isArray(old) ? old : []).map((c: unknown) =>
+          (c as { id: string }).id.startsWith('optimistic-') ? data : c
+        )
+      )
       queryClient.invalidateQueries({ queryKey: postKeys.detail(postId) })
+      // fire-and-forget (UI 블로킹 안 함)
+      syncCount(postId, 'comment')
     },
   })
 }
