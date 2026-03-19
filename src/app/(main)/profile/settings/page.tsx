@@ -81,7 +81,7 @@ export default function SettingsPage() {
           icon: <Bell size={20} />,
           label: '알림 설정',
           description: '푸시 알림 및 이메일 설정',
-          action: () => router.push('/settings/notifications'),
+          action: () => alert('알림 설정 기능은 준비 중입니다.'),
         },
       ],
     },
