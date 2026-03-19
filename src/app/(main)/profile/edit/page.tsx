@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Globe, MapPin, FileText, User } from 'lucide-react'
+import { ArrowLeft, Globe, MapPin, User, Camera } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -15,16 +15,18 @@ export default function ProfileEditPage() {
   const queryClient = useQueryClient()
   const { user, profile, updateProfile } = useAuthStore()
   const supabase = getSupabaseClient()
+  const avatarInputRef = useRef<HTMLInputElement>(null)
 
   const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')
   const [website, setWebsite] = useState('')
   const [location, setLocation] = useState('')
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
   const [initialized, setInitialized] = useState(false)
 
-  // Zustand persist hydration 후 profile이 로드되면 폼 초기화
   useEffect(() => {
     if (profile && !initialized) {
       setDisplayName(profile.display_name || '')
@@ -35,19 +37,44 @@ export default function ProfileEditPage() {
     }
   }, [profile, initialized])
 
-  if (!user || !profile) {
-    return null
+  if (!user || !profile) return null
+
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAvatarFile(file)
+    setAvatarPreview(URL.createObjectURL(file))
   }
 
   const handleSave = async () => {
     setIsSaving(true)
     setError('')
 
+    let newAvatarUrl = profile.avatar_url
+
+    // 아바타가 변경됐으면 먼저 업로드
+    if (avatarFile) {
+      const formData = new FormData()
+      formData.append('avatar', avatarFile)
+
+      const res = await fetch('/api/profile/avatar', { method: 'POST', body: formData })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || '이미지 업로드에 실패했습니다.')
+        setIsSaving(false)
+        return
+      }
+
+      newAvatarUrl = data.avatar_url
+    }
+
     const updates = {
       display_name: displayName.trim() || null,
       bio: bio.trim() || null,
       website: website.trim() || null,
       location: location.trim() || null,
+      avatar_url: newAvatarUrl,
       updated_at: new Date().toISOString(),
     }
 
@@ -63,7 +90,6 @@ export default function ProfileEditPage() {
     }
 
     updateProfile(updates)
-    // 프로필 쿼리 캐시 즉시 반영
     queryClient.setQueryData(['profile', profile.username], (old: Record<string, unknown>) => ({
       ...old,
       ...updates,
@@ -76,19 +102,11 @@ export default function ProfileEditPage() {
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-md pt-safe-top">
         <div className="flex items-center justify-between px-4 h-14">
-          <button
-            onClick={() => router.back()}
-            className="p-2 -ml-2 tap-highlight-none"
-          >
+          <button onClick={() => router.back()} className="p-2 -ml-2 tap-highlight-none">
             <ArrowLeft size={24} className="text-white" />
           </button>
           <h1 className="text-white font-semibold">프로필 편집</h1>
-          <Button
-            size="sm"
-            onClick={handleSave}
-            isLoading={isSaving}
-            className="px-4"
-          >
+          <Button size="sm" onClick={handleSave} isLoading={isSaving} className="px-4">
             저장
           </Button>
         </div>
@@ -96,13 +114,33 @@ export default function ProfileEditPage() {
 
       <div className="px-4 py-6 space-y-6">
         {/* Avatar */}
-        <div className="flex flex-col items-center gap-3">
-          <Avatar
-            src={profile.avatar_url}
-            username={profile.username}
-            size="xl"
+        <div className="flex flex-col items-center gap-2">
+          <div
+            className="relative cursor-pointer"
+            onClick={() => avatarInputRef.current?.click()}
+          >
+            <Avatar
+              src={avatarPreview || profile.avatar_url}
+              username={profile.username}
+              size="xl"
+            />
+            <div className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-primary border-2 border-background flex items-center justify-center">
+              <Camera size={13} className="text-white" />
+            </div>
+          </div>
+          <button
+            onClick={() => avatarInputRef.current?.click()}
+            className="text-primary text-sm tap-highlight-none"
+          >
+            사진 변경
+          </button>
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarSelect}
+            className="hidden"
           />
-          <p className="text-text-muted text-xs">@{profile.username}</p>
         </div>
 
         {/* Form */}
@@ -154,16 +192,9 @@ export default function ProfileEditPage() {
           />
         </div>
 
-        {error && (
-          <p className="text-error text-sm text-center">{error}</p>
-        )}
+        {error && <p className="text-error text-sm text-center">{error}</p>}
 
-        <Button
-          fullWidth
-          onClick={handleSave}
-          isLoading={isSaving}
-          size="lg"
-        >
+        <Button fullWidth onClick={handleSave} isLoading={isSaving} size="lg">
           저장하기
         </Button>
       </div>
