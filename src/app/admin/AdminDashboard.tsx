@@ -6,12 +6,14 @@ import {
   ArrowLeft,
   MessageSquare,
   UserPlus,
+  Users,
 } from 'lucide-react'
 import FeedbackPanel from './FeedbackPanel'
 import AccountsPanel from './AccountsPanel'
+import UsersPanel from './UsersPanel'
 import { Logo } from '@/components/ui/Logo'
 
-type AdminTab = 'feedback' | 'accounts'
+type AdminTab = 'feedback' | 'accounts' | 'users'
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState<AdminTab>('feedback')
@@ -62,12 +64,25 @@ export default function AdminDashboard() {
                 <UserPlus size={13} />
                 <span className="hidden xs:inline">가계정</span>
               </button>
+              <button
+                onClick={() => setTab('users')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all tap-highlight-none ${
+                  tab === 'users'
+                    ? 'bg-primary text-white'
+                    : 'text-text-secondary hover:text-white'
+                }`}
+              >
+                <Users size={13} />
+                <span className="hidden xs:inline">가입자</span>
+              </button>
             </div>
           </div>
         </div>
       </nav>
 
-      {tab === 'feedback' ? <FeedbackPanel /> : <AccountsPanel />}
+      {tab === 'feedback' && <FeedbackPanel />}
+      {tab === 'accounts' && <AccountsPanel />}
+      {tab === 'users' && <UsersPanel />}
     </div>
   )
 }
