@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Globe, MapPin, FileText, User } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -16,12 +16,24 @@ export default function ProfileEditPage() {
   const { user, profile, updateProfile } = useAuthStore()
   const supabase = getSupabaseClient()
 
-  const [displayName, setDisplayName] = useState(profile?.display_name || '')
-  const [bio, setBio] = useState(profile?.bio || '')
-  const [website, setWebsite] = useState(profile?.website || '')
-  const [location, setLocation] = useState(profile?.location || '')
+  const [displayName, setDisplayName] = useState('')
+  const [bio, setBio] = useState('')
+  const [website, setWebsite] = useState('')
+  const [location, setLocation] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
+  const [initialized, setInitialized] = useState(false)
+
+  // Zustand persist hydration 후 profile이 로드되면 폼 초기화
+  useEffect(() => {
+    if (profile && !initialized) {
+      setDisplayName(profile.display_name || '')
+      setBio(profile.bio || '')
+      setWebsite(profile.website || '')
+      setLocation(profile.location || '')
+      setInitialized(true)
+    }
+  }, [profile, initialized])
 
   if (!user || !profile) {
     return null
