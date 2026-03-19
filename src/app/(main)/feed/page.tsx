@@ -173,7 +173,7 @@ export default function FeedPage() {
               <p className="text-text-secondary text-sm">
                 {activeTab === 'following'
                   ? '팔로우한 아티스트의 게시물이 여기 표시됩니다'
-                  : '첫 번째 그라피티를 업로드해보세요!'}
+                  : '첫 번째 그래피티를 업로드해보세요!'}
               </p>
             </div>
           </div>

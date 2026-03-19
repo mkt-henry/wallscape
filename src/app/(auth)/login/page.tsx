@@ -31,6 +31,9 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSocialLoading, setIsSocialLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isBanned, setIsBanned] = useState(false)
+  const [isRequestingReactivation, setIsRequestingReactivation] = useState(false)
+  const [reactivationSent, setReactivationSent] = useState(false)
 
   const supabase = getSupabaseClient()
 
@@ -48,7 +51,10 @@ function LoginForm() {
       })
 
       if (error) {
-        if (error.message.includes('Invalid login credentials')) {
+        if (error.message.toLowerCase().includes('banned') || error.message.toLowerCase().includes('user has been banned')) {
+          setIsBanned(true)
+          setError(null)
+        } else if (error.message.includes('Invalid login credentials')) {
           setError('이메일 또는 비밀번호가 올바르지 않습니다.')
         } else if (error.message.includes('Email not confirmed')) {
           setError('이메일 인증이 필요합니다. 이메일을 확인해주세요.')
@@ -63,6 +69,29 @@ function LoginForm() {
       setError('로그인 중 오류가 발생했습니다.')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleReactivationRequest = async () => {
+    setIsRequestingReactivation(true)
+    try {
+      const res = await fetch('/api/profile/reactivation-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      })
+      if (res.ok) {
+        setReactivationSent(true)
+      } else {
+        const data = await res.json()
+        setError(data.error || '요청에 실패했습니다.')
+        setIsBanned(false)
+      }
+    } catch {
+      setError('요청 중 오류가 발생했습니다.')
+      setIsBanned(false)
+    } finally {
+      setIsRequestingReactivation(false)
     }
   }
 
@@ -82,6 +111,55 @@ function LoginForm() {
     } finally {
       setIsSocialLoading(false)
     }
+  }
+
+  // 밴된 유저 화면
+  if (isBanned) {
+    return (
+      <div className="min-h-dvh bg-background flex flex-col items-center justify-center px-6">
+        <div className="text-center max-w-sm w-full space-y-6">
+          <div className="w-20 h-20 rounded-full bg-error/10 border border-error/30 flex items-center justify-center mx-auto">
+            <span className="text-4xl">🔒</span>
+          </div>
+          {reactivationSent ? (
+            <>
+              <h1 className="text-2xl font-black text-white">요청 완료</h1>
+              <p className="text-text-secondary text-sm leading-relaxed">
+                재활성화 요청이 관리자에게 전달됐습니다.<br />
+                검토 후 연락드릴게요.
+              </p>
+              <Button onClick={() => router.push('/')} fullWidth variant="secondary">
+                홈으로
+              </Button>
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-black text-white">계정이 비활성화되어 있습니다</h1>
+              <p className="text-text-secondary text-sm leading-relaxed">
+                이 계정은 비활성화 처리됐습니다.<br />
+                다시 사용하려면 관리자에게 재활성화를 요청하세요.
+              </p>
+              {error && (
+                <p className="text-error text-sm">{error}</p>
+              )}
+              <Button
+                onClick={handleReactivationRequest}
+                isLoading={isRequestingReactivation}
+                fullWidth
+              >
+                재활성화 요청하기
+              </Button>
+              <button
+                onClick={() => { setIsBanned(false); setError(null) }}
+                className="text-text-secondary text-sm tap-highlight-none"
+              >
+                돌아가기
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    )
   }
 
   return (

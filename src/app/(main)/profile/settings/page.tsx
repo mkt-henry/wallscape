@@ -7,7 +7,6 @@ import {
   User,
   Bell,
   Shield,
-  HelpCircle,
   LogOut,
   ChevronRight,
   Moon,
@@ -44,6 +43,7 @@ export default function SettingsPage() {
   const [showLogoutSheet, setShowLogoutSheet] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [showDeleteSheet, setShowDeleteSheet] = useState(false)
+  const [isDeactivating, setIsDeactivating] = useState(false)
   const [showComingSoonSheet, setShowComingSoonSheet] = useState(false)
   const [comingSoonLabel, setComingSoonLabel] = useState('')
 
@@ -57,6 +57,20 @@ export default function SettingsPage() {
     await supabase.auth.signOut()
     reset()
     router.replace('/login')
+  }
+
+  const handleDeactivate = async () => {
+    setIsDeactivating(true)
+    const res = await fetch('/api/profile/deactivate', { method: 'POST' })
+    if (res.ok) {
+      await supabase.auth.signOut()
+      reset()
+      router.replace('/login')
+    } else {
+      setIsDeactivating(false)
+      setShowDeleteSheet(false)
+      alert('계정 비활성화에 실패했습니다. 다시 시도해주세요.')
+    }
   }
 
   const sections: SettingSection[] = [
@@ -116,16 +130,9 @@ export default function SettingsPage() {
           action: () => router.push('/feedback'),
         },
         {
-          icon: <HelpCircle size={20} />,
-          label: '도움말 및 지원',
-          action: () => openComingSoon('도움말 및 지원'),
-          comingSoon: true,
-        },
-        {
           icon: <Shield size={20} />,
           label: '개인정보처리방침',
-          action: () => openComingSoon('개인정보처리방침'),
-          comingSoon: true,
+          action: () => router.push('/privacy'),
         },
       ],
     },
@@ -245,16 +252,16 @@ export default function SettingsPage() {
       </BottomSheet>
 
       {/* Delete account sheet */}
-      <BottomSheet isOpen={showDeleteSheet} onClose={() => setShowDeleteSheet(false)} title="계정 삭제">
+      <BottomSheet isOpen={showDeleteSheet} onClose={() => !isDeactivating && setShowDeleteSheet(false)} title="계정 삭제">
         <div className="px-4 pb-safe-bottom pb-6 space-y-4">
           <p className="text-text-secondary text-center text-sm leading-relaxed">
-            계정 삭제는 되돌릴 수 없습니다.{'\n'}
-            삭제를 원하시면 <span className="text-white font-semibold">피드백/문의</span>로 요청해 주세요.
+            계정을 삭제하면 로그인이 차단됩니다.{'\n'}
+            데이터는 보관되며, 나중에 <span className="text-white font-semibold">재활성화 요청</span>으로 복구할 수 있어요.
           </p>
-          <Button onClick={() => { setShowDeleteSheet(false); router.push('/feedback') }} fullWidth variant="danger">
-            문의하기
+          <Button onClick={handleDeactivate} isLoading={isDeactivating} fullWidth variant="danger">
+            계정 삭제
           </Button>
-          <Button onClick={() => setShowDeleteSheet(false)} fullWidth variant="secondary">
+          <Button onClick={() => setShowDeleteSheet(false)} fullWidth variant="secondary" disabled={isDeactivating}>
             취소
           </Button>
         </div>

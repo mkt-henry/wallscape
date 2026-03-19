@@ -25,7 +25,7 @@ const slides: Slide[] = [
     title: '도시의 숨겨진\n예술을 찾아라',
     subtitle: 'DISCOVER',
     description:
-      '내 주변 수백 미터 안에 숨어있는 그라피티와 스트릿 아트를 지도 위에서 발견하세요. 매일 새로운 작품들이 도시를 물들입니다.',
+      '내 주변 수백 미터 안에 숨어있는 그래피티와 스트릿 아트를 지도 위에서 발견하세요. 매일 새로운 작품들이 도시를 물들입니다.',
     gradient: 'from-primary/20 via-background to-background',
     accentColor: '#D946EF',
   },

@@ -7,13 +7,15 @@ import {
   MessageSquare,
   UserPlus,
   Users,
+  UserCheck,
 } from 'lucide-react'
 import FeedbackPanel from './FeedbackPanel'
 import AccountsPanel from './AccountsPanel'
 import UsersPanel from './UsersPanel'
+import ReactivationPanel from './ReactivationPanel'
 import { Logo } from '@/components/ui/Logo'
 
-type AdminTab = 'feedback' | 'accounts' | 'users'
+type AdminTab = 'feedback' | 'accounts' | 'users' | 'reactivation'
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState<AdminTab>('feedback')
@@ -75,6 +77,17 @@ export default function AdminDashboard() {
                 <Users size={13} />
                 <span className="hidden xs:inline">가입자</span>
               </button>
+              <button
+                onClick={() => setTab('reactivation')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all tap-highlight-none ${
+                  tab === 'reactivation'
+                    ? 'bg-primary text-white'
+                    : 'text-text-secondary hover:text-white'
+                }`}
+              >
+                <UserCheck size={13} />
+                <span className="hidden xs:inline">재활성화</span>
+              </button>
             </div>
           </div>
         </div>
@@ -83,6 +96,7 @@ export default function AdminDashboard() {
       {tab === 'feedback' && <FeedbackPanel />}
       {tab === 'accounts' && <AccountsPanel />}
       {tab === 'users' && <UsersPanel />}
+      {tab === 'reactivation' && <ReactivationPanel />}
     </div>
   )
 }

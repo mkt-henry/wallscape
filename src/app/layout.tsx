@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import Script from 'next/script'
 import './globals.css'
 import { Providers } from './providers'
 
@@ -7,8 +8,8 @@ export const metadata: Metadata = {
     default: 'Wallscape',
     template: '%s | Wallscape',
   },
-  description: '당신 주변의 그라피티를 발견하고 공유하세요 - 위치 기반 스트릿 아트 SNS',
-  keywords: ['그라피티', '스트릿아트', 'street art', 'graffiti', '위치기반', 'SNS'],
+  description: '당신 주변의 그래피티를 발견하고 공유하세요 - 위치 기반 스트릿 아트 SNS',
+  keywords: ['그래피티', '스트릿아트', 'street art', 'graffiti', '위치기반', 'SNS'],
   authors: [{ name: 'Wallscape Team' }],
   creator: 'Wallscape',
   manifest: '/manifest.json',
@@ -21,14 +22,14 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'ko_KR',
     url: process.env.NEXT_PUBLIC_APP_URL,
-    title: 'Wallscape - 위치 기반 그라피티 SNS',
-    description: '당신 주변의 그라피티를 발견하고 공유하세요',
+    title: 'Wallscape - 위치 기반 그래피티 SNS',
+    description: '당신 주변의 그래피티를 발견하고 공유하세요',
     siteName: 'Wallscape',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Wallscape',
-    description: '위치 기반 그라피티 SNS',
+    description: '위치 기반 그래피티 SNS',
   },
   icons: {
     icon: '/favicon.ico',
@@ -60,26 +61,8 @@ export default function RootLayout({
           content="black-translucent"
         />
         <link rel="preconnect" href="https://dapi.kakao.com" />
-        {/* Google Tag Manager */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-5XSNZHVK');`,
-          }}
-        />
-        {/* Google Analytics 4 */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-8SDM34HPG0" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'G-8SDM34HPG0');`,
-          }}
-        />
+        <meta name="msvalidate.01" content="DD5E0C4A6898114F2203365933B47589" />
+        <meta name="naver-site-verification" content="7150bc5364b84dcd1a98da90516f6a3859ac3bb0" />
       </head>
       <body className="bg-background text-white antialiased tap-highlight-none">
         {/* Google Tag Manager (noscript) */}
@@ -91,6 +74,24 @@ gtag('config', 'G-8SDM34HPG0');`,
             style={{ display: 'none', visibility: 'hidden' }}
           />
         </noscript>
+        {/* Google Tag Manager */}
+        <Script id="gtm" strategy="beforeInteractive">{`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-5XSNZHVK');`}</Script>
+        {/* Google Analytics 4 */}
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-8SDM34HPG0" strategy="afterInteractive" />
+        <Script id="ga4" strategy="afterInteractive">{`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-8SDM34HPG0');`}</Script>
+        {/* Microsoft Clarity */}
+        <Script id="clarity" strategy="afterInteractive">{`(function(c,l,a,r,i,t,y){
+c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+})(window, document, "clarity", "script", "vx0y506jv0");`}</Script>
         <Providers>{children}</Providers>
       </body>
     </html>
