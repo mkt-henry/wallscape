@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Settings, Grid3X3, Archive, Bookmark, MapPin, Share2, MoreHorizontal } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Avatar } from '@/components/ui/Avatar'
@@ -26,6 +26,7 @@ export function ProfileView({ username, isOwnProfile }: ProfileViewProps) {
   const router = useRouter()
   const { user } = useAuthStore()
   const supabase = getSupabaseClient()
+  const queryClient = useQueryClient()
   const [isFollowing, setIsFollowing] = useState(false)
   const [isFollowLoading, setIsFollowLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<ProfileTab>('posts')
@@ -107,24 +108,39 @@ export function ProfileView({ username, isOwnProfile }: ProfileViewProps) {
   }
 
   const handleFollowToggle = async () => {
-    if (!user || !profile) return
+    if (!user || !profile || isFollowLoading) return
+
+    // optimistic update
+    const wasFollowing = isFollowing
+    setIsFollowing(!wasFollowing)
+    queryClient.setQueryData<Profile>(['profile', username], (old) =>
+      old
+        ? { ...old, follower_count: old.follower_count + (wasFollowing ? -1 : 1) }
+        : old
+    )
 
     setIsFollowLoading(true)
     try {
-      if (isFollowing) {
+      if (wasFollowing) {
         await supabase
           .from('follows')
           .delete()
           .eq('follower_id', user.id)
           .eq('following_id', profile.id)
-        setIsFollowing(false)
       } else {
         await supabase.from('follows').insert({
           follower_id: user.id,
           following_id: profile.id,
         })
-        setIsFollowing(true)
       }
+    } catch {
+      // 실패 시 롤백
+      setIsFollowing(wasFollowing)
+      queryClient.setQueryData<Profile>(['profile', username], (old) =>
+        old
+          ? { ...old, follower_count: old.follower_count + (wasFollowing ? 1 : -1) }
+          : old
+      )
     } finally {
       setIsFollowLoading(false)
     }
