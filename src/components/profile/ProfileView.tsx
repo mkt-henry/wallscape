@@ -30,6 +30,7 @@ export function ProfileView({ username, isOwnProfile }: ProfileViewProps) {
   const [isFollowing, setIsFollowing] = useState(false)
   const [isFollowLoading, setIsFollowLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<ProfileTab>('posts')
+  const [showAvatarModal, setShowAvatarModal] = useState(false)
 
   // Fetch profile
   const { data: profile, isLoading: profileLoading } = useQuery({
@@ -236,11 +237,16 @@ export function ProfileView({ username, isOwnProfile }: ProfileViewProps) {
       <div className="px-4 pb-6 pt-4">
         <div className="flex items-start gap-5">
           {/* Avatar */}
-          <Avatar
-            src={profile.avatar_url}
-            username={profile.username}
-            size="xl"
-          />
+          <button
+            onClick={() => profile.avatar_url && setShowAvatarModal(true)}
+            className="tap-highlight-none shrink-0"
+          >
+            <Avatar
+              src={profile.avatar_url}
+              username={profile.username}
+              size="xl"
+            />
+          </button>
 
           {/* Stats */}
           <div className="flex-1 pt-2">
@@ -432,6 +438,24 @@ export function ProfileView({ username, isOwnProfile }: ProfileViewProps) {
               <p className="text-text-secondary text-sm">보관된 게시물이 없어요</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Avatar fullscreen modal */}
+      {showAvatarModal && profile.avatar_url && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+          onClick={() => setShowAvatarModal(false)}
+        >
+          <div className="relative w-full max-w-sm mx-4 aspect-square">
+            <Image
+              src={profile.avatar_url}
+              alt={profile.username}
+              fill
+              className="object-cover rounded-full"
+              sizes="384px"
+            />
+          </div>
         </div>
       )}
     </div>
