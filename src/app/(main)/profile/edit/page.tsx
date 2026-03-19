@@ -22,7 +22,6 @@ export default function ProfileEditPage() {
   const [error, setError] = useState('')
 
   if (!user || !profile) {
-    router.replace('/login')
     return null
   }
 

@@ -22,7 +22,6 @@ export default function ChangePasswordPage() {
   const [success, setSuccess] = useState(false)
 
   if (!user) {
-    router.replace('/login')
     return null
   }
 
