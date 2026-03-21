@@ -14,5 +14,5 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function UserProfilePage({ params }: Props) {
   const { username } = await params
-  return <ProfileView username={username} isOwnProfile={false} />
+  return <ProfileView username={username} />
 }

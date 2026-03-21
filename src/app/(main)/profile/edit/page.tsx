@@ -2,13 +2,15 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Globe, MapPin, User, Camera } from 'lucide-react'
+import { ArrowLeft, Globe, MapPin, User, Camera, AtSign, CheckCircle, XCircle, Loader } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+
+const USERNAME_REGEX = /^[a-z0-9_]{3,30}$/
 
 export default function ProfileEditPage() {
   const router = useRouter()
@@ -17,6 +19,7 @@ export default function ProfileEditPage() {
   const supabase = getSupabaseClient()
   const avatarInputRef = useRef<HTMLInputElement>(null)
 
+  const [username, setUsername] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')
   const [website, setWebsite] = useState('')
@@ -27,8 +30,11 @@ export default function ProfileEditPage() {
   const [error, setError] = useState('')
   const [initialized, setInitialized] = useState(false)
 
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
+
   useEffect(() => {
     if (profile && !initialized) {
+      setUsername(profile.username || '')
       setDisplayName(profile.display_name || '')
       setBio(profile.bio || '')
       setWebsite(profile.website || '')
@@ -36,6 +42,28 @@ export default function ProfileEditPage() {
       setInitialized(true)
     }
   }, [profile, initialized])
+
+  useEffect(() => {
+    if (!initialized || !profile) return
+    if (username === profile.username) {
+      setUsernameStatus('idle')
+      return
+    }
+    if (!USERNAME_REGEX.test(username)) {
+      setUsernameStatus('invalid')
+      return
+    }
+    setUsernameStatus('checking')
+    const timer = setTimeout(async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', username)
+        .maybeSingle()
+      setUsernameStatus(data ? 'taken' : 'available')
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [username, initialized, profile, supabase])
 
   if (!user || !profile) return null
 
@@ -46,7 +74,11 @@ export default function ProfileEditPage() {
     setAvatarPreview(URL.createObjectURL(file))
   }
 
+  const isUsernameChanged = username !== profile?.username
+  const canSave = !isUsernameChanged || usernameStatus === 'available'
+
   const handleSave = async () => {
+    if (!canSave) return
     setIsSaving(true)
     setError('')
 
@@ -70,6 +102,7 @@ export default function ProfileEditPage() {
     }
 
     const updates = {
+      username: username.trim(),
       display_name: displayName.trim() || null,
       bio: bio.trim() || null,
       website: website.trim() || null,
@@ -90,11 +123,9 @@ export default function ProfileEditPage() {
     }
 
     updateProfile(updates)
-    queryClient.setQueryData(['profile', profile.username], (old: Record<string, unknown>) => ({
-      ...old,
-      ...updates,
-    }))
-    router.back()
+    queryClient.invalidateQueries({ queryKey: ['profile', profile.username] })
+    queryClient.invalidateQueries({ queryKey: ['profile', username.trim()] })
+    router.replace(`/profile/${username.trim()}`)
   }
 
   return (
@@ -106,7 +137,7 @@ export default function ProfileEditPage() {
             <ArrowLeft size={24} className="text-white" />
           </button>
           <h1 className="text-white font-semibold">프로필 편집</h1>
-          <Button size="sm" onClick={handleSave} isLoading={isSaving} className="px-4">
+          <Button size="sm" onClick={handleSave} isLoading={isSaving} disabled={!canSave} className="px-4">
             저장
           </Button>
         </div>
@@ -145,6 +176,36 @@ export default function ProfileEditPage() {
 
         {/* Form */}
         <div className="space-y-4">
+          {/* Username */}
+          <div>
+            <Input
+              label="핸들 (아이디)"
+              value={username}
+              onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+              placeholder="username"
+              leftIcon={<AtSign size={16} />}
+              maxLength={30}
+              rightIcon={
+                usernameStatus === 'checking' ? <Loader size={16} className="text-text-muted animate-spin" /> :
+                usernameStatus === 'available' ? <CheckCircle size={16} className="text-green-500" /> :
+                usernameStatus === 'taken' ? <XCircle size={16} className="text-error" /> :
+                usernameStatus === 'invalid' ? <XCircle size={16} className="text-error" /> :
+                undefined
+              }
+            />
+            <p className={`mt-1.5 text-xs px-1 ${
+              usernameStatus === 'invalid' ? 'text-error' :
+              usernameStatus === 'taken' ? 'text-error' :
+              usernameStatus === 'available' ? 'text-green-500' :
+              'text-text-muted'
+            }`}>
+              {usernameStatus === 'invalid' && '영문 소문자, 숫자, 밑줄(_)만 사용 가능하며 3~30자여야 합니다.'}
+              {usernameStatus === 'taken' && '이미 사용 중인 핸들입니다.'}
+              {usernameStatus === 'available' && '사용 가능한 핸들입니다.'}
+              {usernameStatus === 'idle' && '영문 소문자, 숫자, 밑줄(_) 사용 가능 (3~30자)'}
+            </p>
+          </div>
+
           <Input
             label="표시 이름"
             value={displayName}
@@ -194,7 +255,7 @@ export default function ProfileEditPage() {
 
         {error && <p className="text-error text-sm text-center">{error}</p>}
 
-        <Button fullWidth onClick={handleSave} isLoading={isSaving} size="lg">
+        <Button fullWidth onClick={handleSave} isLoading={isSaving} disabled={!canSave} size="lg">
           저장하기
         </Button>
       </div>

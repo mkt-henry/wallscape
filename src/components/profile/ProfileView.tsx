@@ -17,14 +17,14 @@ import type { Profile, PostWithUser } from '@/types'
 
 interface ProfileViewProps {
   username: string
-  isOwnProfile: boolean
 }
 
 type ProfileTab = 'posts' | 'saved' | 'archived'
 
-export function ProfileView({ username, isOwnProfile }: ProfileViewProps) {
+export function ProfileView({ username }: ProfileViewProps) {
   const router = useRouter()
-  const { user } = useAuthStore()
+  const { user, profile: authProfile } = useAuthStore()
+  const isOwnProfile = authProfile?.username === username
   const supabase = getSupabaseClient()
   const queryClient = useQueryClient()
   const [isFollowing, setIsFollowing] = useState(false)

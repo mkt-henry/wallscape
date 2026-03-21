@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Eye, EyeOff, ArrowLeft, Mail } from 'lucide-react'
+import { Eye, EyeOff, ArrowLeft, Mail, ShieldCheck } from 'lucide-react'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Logo } from '@/components/ui/Logo'
+
 
 function GoogleIcon() {
   return (
@@ -35,7 +36,14 @@ function LoginForm() {
   const [isRequestingReactivation, setIsRequestingReactivation] = useState(false)
   const [reactivationSent, setReactivationSent] = useState(false)
 
+  const [isAdminLoading, setIsAdminLoading] = useState(false)
+  const [isDev, setIsDev] = useState(false)
   const supabase = getSupabaseClient()
+
+  useEffect(() => {
+    const hostname = window.location.hostname
+    setIsDev(hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('ngrok'))
+  }, [])
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -110,6 +118,42 @@ function LoginForm() {
       setError('Google 로그인 중 오류가 발생했습니다.')
     } finally {
       setIsSocialLoading(false)
+    }
+  }
+
+  const handleAdminLogin = async () => {
+    const adminEmail = process.env.NEXT_PUBLIC_DEV_ADMIN_EMAIL
+    const adminPassword = process.env.NEXT_PUBLIC_DEV_ADMIN_PASSWORD
+    if (!adminEmail || !adminPassword) {
+      setError('NEXT_PUBLIC_DEV_ADMIN_EMAIL / PASSWORD 환경변수를 설정해주세요.')
+      return
+    }
+
+    setIsAdminLoading(true)
+    setError(null)
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: adminEmail,
+        password: adminPassword,
+      })
+
+      if (error) {
+        setError(`관리자 로그인 실패: ${error.message}`)
+        return
+      }
+
+      // SIGNED_IN 이벤트가 발생해야 쿠키 저장이 완료된 것
+      // → 그 이후 풀 리로드해야 미들웨어가 쿠키를 정상적으로 읽음
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_IN') {
+          subscription.unsubscribe()
+          window.location.href = redirectTo
+        }
+      })
+    } catch {
+      setError('관리자 로그인 중 오류가 발생했습니다.')
+      setIsAdminLoading(false)
     }
   }
 
@@ -192,6 +236,17 @@ function LoginForm() {
           <div className="mb-4 p-4 bg-error/10 border border-error/30 rounded-2xl">
             <p className="text-error text-sm">{error}</p>
           </div>
+        )}
+
+        {/* 개발 환경 전용 관리자 로그인 */}
+        {isDev && (
+          <button
+            onClick={handleAdminLogin}
+            className="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-2xl bg-amber-500/10 border border-amber-500/40 text-amber-400 text-sm font-medium transition-all duration-200 active:scale-95 tap-highlight-none hover:bg-amber-500/20 mb-3"
+          >
+            <ShieldCheck size={18} />
+            관리자로 로그인 (개발용)
+          </button>
         )}
 
         {/* Google login */}

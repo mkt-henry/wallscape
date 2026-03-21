@@ -1,15 +1,31 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { ProfileView } from '@/components/profile/ProfileView'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
 import { User } from 'lucide-react'
 
 export default function MyProfilePage() {
-  const { user, profile } = useAuthStore()
+  const router = useRouter()
+  const { user, profile, isInitialized } = useAuthStore()
 
-  if (!user || !profile) {
+  useEffect(() => {
+    if (isInitialized && user && profile) {
+      router.replace(`/profile/${profile.username}`)
+    }
+  }, [isInitialized, user, profile, router])
+
+  if (!isInitialized || (user && profile)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="loader" />
+      </div>
+    )
+  }
+
+  if (!user) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 gap-6">
         <div className="w-20 h-20 rounded-full bg-surface-2 flex items-center justify-center">
@@ -28,5 +44,9 @@ export default function MyProfilePage() {
     )
   }
 
-  return <ProfileView username={profile.username} isOwnProfile />
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="loader" />
+    </div>
+  )
 }
