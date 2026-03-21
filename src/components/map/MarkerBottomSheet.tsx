@@ -5,16 +5,21 @@ import Link from 'next/link'
 import { X, Heart, MapPin, ExternalLink, Navigation } from 'lucide-react'
 import { useMapStore } from '@/stores/useMapStore'
 import { Avatar } from '@/components/ui/Avatar'
-import { formatNumber, formatDistance, formatRelativeTime } from '@/lib/utils'
+import { formatNumber, formatDistance, formatRelativeTime, getDisplayProfile } from '@/lib/utils'
+import { useAuthStore } from '@/stores/useAuthStore'
 import type { NearbyPost } from '@/types'
 
 export function MarkerBottomSheet() {
   const { selectedPost, closePostSheet } = useMapStore()
 
+  const { user } = useAuthStore()
+
   if (!selectedPost) return null
 
   const isNearby = 'distance_meters' in selectedPost
   const post = selectedPost as NearbyPost
+  const author = getDisplayProfile(post.profiles, post.show_in_profile, user?.id, post.user_id)
+  const isAnonymous = author.id === 'anonymous'
 
   const handleDirections = () => {
     const url = `https://map.kakao.com/link/to/${encodeURIComponent(post.title)},${post.lat},${post.lng}`
@@ -98,22 +103,27 @@ export function MarkerBottomSheet() {
         </div>
 
         {/* Author */}
-        <Link
-          href={`/profile/${post.profiles.username}`}
-          className="flex items-center gap-3 p-3 bg-surface-2 rounded-2xl mb-4 tap-highlight-none"
-        >
-          <Avatar
-            src={post.profiles.avatar_url}
-            username={post.profiles.username}
-            size="sm"
-          />
-          <div className="flex-1 min-w-0">
-            <p className="text-white text-sm font-medium truncate">
-              {post.profiles.display_name || post.profiles.username}
-            </p>
-            <p className="text-text-secondary text-xs">@{post.profiles.username}</p>
+        {isAnonymous ? (
+          <div className="flex items-center gap-3 p-3 bg-surface-2 rounded-2xl mb-4">
+            <Avatar src={null} username="wallscape" size="sm" />
+            <div className="flex-1 min-w-0">
+              <p className="text-text-secondary text-sm font-medium">공용 계정</p>
+            </div>
           </div>
-        </Link>
+        ) : (
+          <Link
+            href={`/profile/${author.username}`}
+            className="flex items-center gap-3 p-3 bg-surface-2 rounded-2xl mb-4 tap-highlight-none"
+          >
+            <Avatar src={author.avatar_url} username={author.username} size="sm" />
+            <div className="flex-1 min-w-0">
+              <p className="text-white text-sm font-medium truncate">
+                {author.display_name || author.username}
+              </p>
+              <p className="text-text-secondary text-xs">@{author.username}</p>
+            </div>
+          </Link>
+        )}
 
         {/* Tags */}
         {post.tags && post.tags.length > 0 && (

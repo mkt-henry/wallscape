@@ -7,6 +7,38 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// ---- Anonymous profile (공용 계정) ----------------------------
+
+import type { Profile } from '@/types'
+
+export const ANONYMOUS_PROFILE: Profile = {
+  id: 'anonymous',
+  username: 'wallscape',
+  display_name: '공용 계정',
+  avatar_url: null,
+  bio: null,
+  website: null,
+  location: null,
+  post_count: 0,
+  follower_count: 0,
+  following_count: 0,
+  created_at: '',
+  updated_at: '',
+}
+
+/**
+ * show_in_profile이 false이고 본인이 아니면 공용 계정 프로필 반환
+ */
+export function getDisplayProfile(
+  profiles: Profile,
+  showInProfile: boolean,
+  viewerUserId?: string,
+  postUserId?: string,
+): Profile {
+  if (showInProfile || (viewerUserId && viewerUserId === postUserId)) return profiles
+  return ANONYMOUS_PROFILE
+}
+
 // ---- Date formatting ----------------------------------------
 
 const rtf = new Intl.RelativeTimeFormat('ko', { numeric: 'auto' })

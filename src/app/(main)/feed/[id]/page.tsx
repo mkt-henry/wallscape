@@ -24,7 +24,7 @@ import { usePost, useLikePost, useBookmarkPost, useComments, useAddComment, useA
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Avatar } from '@/components/ui/Avatar'
 import { ActionSheet } from '@/components/ui/BottomSheet'
-import { formatRelativeTime, formatNumber, cn } from '@/lib/utils'
+import { formatRelativeTime, formatNumber, cn, getDisplayProfile } from '@/lib/utils'
 
 const MiniMap = dynamic(() => import('@/components/map/MiniMap'), {
   ssr: false,
@@ -117,9 +117,10 @@ export default function PostDetailPage({ params }: Props) {
     )
   }
 
+  const author = getDisplayProfile(post.profiles, post.show_in_profile, user?.id, post.user_id)
+  const isAnonymous = author.id === 'anonymous'
+
   // ── Main render ───────────────────────────────────────────────
-  // Single layout — like the feed page, no md:hidden / hidden md:block splits.
-  // Uses a responsive grid: single column on mobile, 2 columns on lg+.
   return (
     <div className="min-h-screen bg-background">
 
@@ -164,25 +165,34 @@ export default function PostDetailPage({ params }: Props) {
           <div className="px-4 py-4 lg:px-0 lg:py-0 space-y-4 lg:space-y-6">
 
             {/* Author */}
-            <Link
-              href={`/profile/${post.profiles.username}`}
-              className="flex items-center gap-3 tap-highlight-none"
-            >
-              <Avatar
-                src={post.profiles.avatar_url}
-                username={post.profiles.username}
-                size="md"
-                className="shrink-0"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-white font-semibold truncate">
-                  {post.profiles.display_name || post.profiles.username}
-                </p>
-                <p className="text-text-secondary text-sm truncate">
-                  @{post.profiles.username}
-                </p>
+            {isAnonymous ? (
+              <div className="flex items-center gap-3">
+                <Avatar src={null} username="wallscape" size="md" className="shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-text-secondary font-semibold">공용 계정</p>
+                </div>
               </div>
-            </Link>
+            ) : (
+              <Link
+                href={`/profile/${author.username}`}
+                className="flex items-center gap-3 tap-highlight-none"
+              >
+                <Avatar
+                  src={author.avatar_url}
+                  username={author.username}
+                  size="md"
+                  className="shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-semibold truncate">
+                    {author.display_name || author.username}
+                  </p>
+                  <p className="text-text-secondary text-sm truncate">
+                    @{author.username}
+                  </p>
+                </div>
+              </Link>
+            )}
 
             {/* Action buttons */}
             <div className="flex items-center justify-between py-2 border-y border-border">

@@ -378,7 +378,7 @@ export default function UploadPage() {
               </label>
               <div className="bg-surface-2 rounded-2xl divide-y divide-border overflow-hidden">
                 {([
-                  { label: '프로필 노출', desc: '내 프로필에 표시', value: showInProfile, setter: setShowInProfile },
+                  { label: '프로필 공개', desc: '끄면 공용 계정으로 노출', value: showInProfile, setter: setShowInProfile },
                   { label: '피드 노출', desc: '다른 사람의 피드에 표시', value: showInFeed, setter: setShowInFeed },
                   { label: '지도 노출', desc: '지도에서 검색 가능', value: showInMap, setter: setShowInMap },
                 ]).map((opt) => (

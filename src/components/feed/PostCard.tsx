@@ -8,7 +8,7 @@ import { useLikePost, useBookmarkPost, useArchivePost } from '@/hooks/usePosts'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Avatar } from '@/components/ui/Avatar'
 import { ActionSheet } from '@/components/ui/BottomSheet'
-import { formatRelativeTime, formatNumber, cn } from '@/lib/utils'
+import { formatRelativeTime, formatNumber, cn, getDisplayProfile } from '@/lib/utils'
 import type { PostWithUser } from '@/types'
 
 interface PostCardProps {
@@ -54,31 +54,51 @@ export function PostCard({ post, showLocation = true, priority = false }: PostCa
     setTimeout(() => setShowHeartAnim(false), 800)
   }
 
-  const author = post.profiles
+  const author = getDisplayProfile(post.profiles, post.show_in_profile, user?.id, post.user_id)
+  const isAnonymous = author.id === 'anonymous'
 
   return (
     <article className="bg-surface rounded-3xl overflow-hidden shadow-card animate-fade-in">
       {/* Author header */}
       <div className="flex items-center justify-between px-4 py-3">
-        <Link
-          href={`/profile/${author.username}`}
-          className="flex items-center gap-3 tap-highlight-none"
-        >
-          <Avatar src={author.avatar_url} username={author.username} size="sm" />
-          <div>
-            <p className="text-white text-sm font-semibold leading-tight">
-              {author.display_name || author.username}
-            </p>
-            {showLocation && (post.district || post.city || post.address) && (
-              <div className="flex items-center gap-1 mt-0.5">
-                <MapPin size={10} className="text-primary" />
-                <span className="text-text-secondary text-xs">
-                  {post.district || post.city || post.address}
-                </span>
-              </div>
-            )}
+        {isAnonymous ? (
+          <div className="flex items-center gap-3">
+            <Avatar src={null} username="wallscape" size="sm" />
+            <div>
+              <p className="text-text-secondary text-sm font-semibold leading-tight">
+                공용 계정
+              </p>
+              {showLocation && (post.district || post.city || post.address) && (
+                <div className="flex items-center gap-1 mt-0.5">
+                  <MapPin size={10} className="text-primary" />
+                  <span className="text-text-secondary text-xs">
+                    {post.district || post.city || post.address}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
-        </Link>
+        ) : (
+          <Link
+            href={`/profile/${author.username}`}
+            className="flex items-center gap-3 tap-highlight-none"
+          >
+            <Avatar src={author.avatar_url} username={author.username} size="sm" />
+            <div>
+              <p className="text-white text-sm font-semibold leading-tight">
+                {author.display_name || author.username}
+              </p>
+              {showLocation && (post.district || post.city || post.address) && (
+                <div className="flex items-center gap-1 mt-0.5">
+                  <MapPin size={10} className="text-primary" />
+                  <span className="text-text-secondary text-xs">
+                    {post.district || post.city || post.address}
+                  </span>
+                </div>
+              )}
+            </div>
+          </Link>
+        )}
 
         <button
           className="p-1 tap-highlight-none"
