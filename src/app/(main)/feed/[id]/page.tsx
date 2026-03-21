@@ -117,8 +117,7 @@ export default function PostDetailPage({ params }: Props) {
     )
   }
 
-  const author = getDisplayProfile(post.profiles, post.show_in_profile, user?.id, post.user_id)
-  const isAnonymous = author.id === 'anonymous'
+  const { profile: author, isAnonymous } = getDisplayProfile(post.profiles, post.show_in_profile, user?.id, post.user_id, post.id)
 
   // ── Main render ───────────────────────────────────────────────
   return (
@@ -167,9 +166,9 @@ export default function PostDetailPage({ params }: Props) {
             {/* Author */}
             {isAnonymous ? (
               <div className="flex items-center gap-3">
-                <Avatar src={null} username="wallscape" size="md" className="shrink-0" />
+                <Avatar src={author.avatar_url} username={author.username} size="md" className="shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-text-secondary font-semibold">공용 계정</p>
+                  <p className="text-text-secondary font-semibold">{author.display_name}</p>
                 </div>
               </div>
             ) : (

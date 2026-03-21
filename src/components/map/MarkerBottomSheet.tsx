@@ -18,8 +18,7 @@ export function MarkerBottomSheet() {
 
   const isNearby = 'distance_meters' in selectedPost
   const post = selectedPost as NearbyPost
-  const author = getDisplayProfile(post.profiles, post.show_in_profile, user?.id, post.user_id)
-  const isAnonymous = author.id === 'anonymous'
+  const { profile: author, isAnonymous } = getDisplayProfile(post.profiles, post.show_in_profile, user?.id, post.user_id, post.id)
 
   const handleDirections = () => {
     const url = `https://map.kakao.com/link/to/${encodeURIComponent(post.title)},${post.lat},${post.lng}`
@@ -105,9 +104,9 @@ export function MarkerBottomSheet() {
         {/* Author */}
         {isAnonymous ? (
           <div className="flex items-center gap-3 p-3 bg-surface-2 rounded-2xl mb-4">
-            <Avatar src={null} username="wallscape" size="sm" />
+            <Avatar src={author.avatar_url} username={author.username} size="sm" />
             <div className="flex-1 min-w-0">
-              <p className="text-text-secondary text-sm font-medium">공용 계정</p>
+              <p className="text-text-secondary text-sm font-medium">{author.display_name}</p>
             </div>
           </div>
         ) : (

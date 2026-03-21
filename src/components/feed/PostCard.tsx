@@ -54,8 +54,7 @@ export function PostCard({ post, showLocation = true, priority = false }: PostCa
     setTimeout(() => setShowHeartAnim(false), 800)
   }
 
-  const author = getDisplayProfile(post.profiles, post.show_in_profile, user?.id, post.user_id)
-  const isAnonymous = author.id === 'anonymous'
+  const { profile: author, isAnonymous } = getDisplayProfile(post.profiles, post.show_in_profile, user?.id, post.user_id, post.id)
 
   return (
     <article className="bg-surface rounded-3xl overflow-hidden shadow-card animate-fade-in">
@@ -63,10 +62,10 @@ export function PostCard({ post, showLocation = true, priority = false }: PostCa
       <div className="flex items-center justify-between px-4 py-3">
         {isAnonymous ? (
           <div className="flex items-center gap-3">
-            <Avatar src={null} username="wallscape" size="sm" />
+            <Avatar src={author.avatar_url} username={author.username} size="sm" />
             <div>
               <p className="text-text-secondary text-sm font-semibold leading-tight">
-                공용 계정
+                {author.display_name}
               </p>
               {showLocation && (post.district || post.city || post.address) && (
                 <div className="flex items-center gap-1 mt-0.5">

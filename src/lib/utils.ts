@@ -7,36 +7,58 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// ---- Anonymous profile (공용 계정) ----------------------------
+// ---- Anonymous profile (비공개 프로필) -------------------------
 
 import type { Profile } from '@/types'
 
-export const ANONYMOUS_PROFILE: Profile = {
-  id: 'anonymous',
-  username: 'wallscape',
-  display_name: '공용 계정',
-  avatar_url: null,
-  bio: null,
-  website: null,
-  location: null,
-  post_count: 0,
-  follower_count: 0,
-  following_count: 0,
-  created_at: '',
-  updated_at: '',
+// A~Z 중 W 제외 (25개)
+const ANON_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVXYZ'.split('')
+
+/**
+ * postId를 기반으로 고정된 익명 알파벳을 결정
+ */
+function getAnonLetter(postId: string): string {
+  let hash = 0
+  for (let i = 0; i < postId.length; i++) {
+    hash = ((hash << 5) - hash + postId.charCodeAt(i)) | 0
+  }
+  return ANON_LETTERS[Math.abs(hash) % ANON_LETTERS.length]
 }
 
 /**
- * show_in_profile이 false이고 본인이 아니면 공용 계정 프로필 반환
+ * show_in_profile이 false이고 본인이 아니면 익명 프로필 반환.
+ * 포스트별로 고정된 A~Z(W 제외) 알파벳이 배정됨.
+ * 이미지: /anonymous/a.png ~ /anonymous/z.png (w 제외)
  */
 export function getDisplayProfile(
   profiles: Profile,
   showInProfile: boolean,
   viewerUserId?: string,
   postUserId?: string,
-): Profile {
-  if (showInProfile || (viewerUserId && viewerUserId === postUserId)) return profiles
-  return ANONYMOUS_PROFILE
+  postId?: string,
+): { profile: Profile; isAnonymous: boolean; letter: string } {
+  if (showInProfile || (viewerUserId && viewerUserId === postUserId)) {
+    return { profile: profiles, isAnonymous: false, letter: '' }
+  }
+  const letter = getAnonLetter(postId ?? '')
+  return {
+    profile: {
+      id: 'anonymous',
+      username: `anonymous-${letter.toLowerCase()}`,
+      display_name: letter,
+      avatar_url: `/anonymous/${letter.toLowerCase()}.png`,
+      bio: null,
+      website: null,
+      location: null,
+      post_count: 0,
+      follower_count: 0,
+      following_count: 0,
+      created_at: '',
+      updated_at: '',
+    },
+    isAnonymous: true,
+    letter,
+  }
 }
 
 // ---- Date formatting ----------------------------------------
