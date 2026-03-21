@@ -15,7 +15,7 @@ import {
   parseTagsFromString,
   cn,
 } from '@/lib/utils'
-import type { Location, PostVisibility, UploadFormData } from '@/types'
+import type { Location, UploadFormData } from '@/types'
 
 type UploadStep = 'image' | 'location' | 'info' | 'publishing'
 
@@ -36,7 +36,9 @@ export default function UploadPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [tagsInput, setTagsInput] = useState('')
-  const [visibility, setVisibility] = useState<PostVisibility>('public')
+  const [showInProfile, setShowInProfile] = useState(true)
+  const [showInFeed, setShowInFeed] = useState(true)
+  const [showInMap, setShowInMap] = useState(true)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -138,7 +140,9 @@ export default function UploadPage() {
           address: location.address || null,
           city: location.city || null,
           district: location.district || null,
-          visibility,
+          show_in_profile: showInProfile,
+          show_in_feed: showInFeed,
+          show_in_map: showInMap,
         })
         .select()
         .single()
@@ -372,24 +376,35 @@ export default function UploadPage() {
               <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
                 공개 범위
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="bg-surface-2 rounded-2xl divide-y divide-border overflow-hidden">
                 {([
-                  { value: 'public', label: '전체 공개', emoji: '🌍' },
-                  { value: 'followers', label: '팔로워', emoji: '👥' },
-                  { value: 'private', label: '나만 보기', emoji: '🔒' },
-                ] as const).map((opt) => (
+                  { label: '프로필 노출', desc: '내 프로필에 표시', value: showInProfile, setter: setShowInProfile },
+                  { label: '피드 노출', desc: '다른 사람의 피드에 표시', value: showInFeed, setter: setShowInFeed },
+                  { label: '지도 노출', desc: '지도에서 검색 가능', value: showInMap, setter: setShowInMap },
+                ]).map((opt) => (
                   <button
-                    key={opt.value}
-                    onClick={() => setVisibility(opt.value)}
-                    className={cn(
-                      'flex flex-col items-center gap-1 py-3 rounded-2xl border transition-all duration-200 tap-highlight-none',
-                      visibility === opt.value
-                        ? 'bg-primary/10 border-primary/40 text-primary'
-                        : 'bg-surface-2 border-border text-text-secondary'
-                    )}
+                    key={opt.label}
+                    type="button"
+                    onClick={() => opt.setter(!opt.value)}
+                    className="w-full flex items-center justify-between px-4 py-3 tap-highlight-none"
                   >
-                    <span className="text-xl">{opt.emoji}</span>
-                    <span className="text-xs font-medium">{opt.label}</span>
+                    <div className="text-left">
+                      <p className="text-white text-sm font-medium">{opt.label}</p>
+                      <p className="text-text-muted text-xs">{opt.desc}</p>
+                    </div>
+                    <div
+                      className={cn(
+                        'relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0',
+                        opt.value ? 'bg-primary' : 'bg-surface-3'
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200',
+                          opt.value ? 'translate-x-5' : 'translate-x-0'
+                        )}
+                      />
+                    </div>
                   </button>
                 ))}
               </div>

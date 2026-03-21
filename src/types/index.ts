@@ -61,6 +61,9 @@ export interface Post {
   bookmark_count: number
   view_count: number
   visibility: PostVisibility
+  show_in_profile: boolean
+  show_in_feed: boolean
+  show_in_map: boolean
   status: PostStatus
   archived_at: string | null
   created_at: string
@@ -171,7 +174,9 @@ export interface UploadFormData {
   description: string
   tags: string[]
   location: Location
-  visibility: PostVisibility
+  showInProfile: boolean
+  showInFeed: boolean
+  showInMap: boolean
 }
 
 // ---- Search ------------------------------------------------

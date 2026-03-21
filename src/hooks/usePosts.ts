@@ -14,7 +14,8 @@ const POST_SELECT = `
   id, user_id, image_url, thumbnail_url, title, description, tags,
   lat, lng, address, city, district,
   like_count, comment_count, bookmark_count, view_count,
-  visibility, created_at, updated_at,
+  visibility, show_in_profile, show_in_feed, show_in_map,
+  created_at, updated_at,
   profiles(id, username, display_name, avatar_url),
   likes(user_id),
   bookmarks(user_id)
@@ -76,6 +77,7 @@ export function useInfiniteFeed(params: FeedParams) {
           .from('posts')
           .select(POST_SELECT)
           .eq('visibility', 'public')
+          .eq('show_in_feed', true)
           .in('user_id', followingIds)
           .order('created_at', { ascending: false })
           .limit(LIMIT)
@@ -107,6 +109,7 @@ export function useInfiniteFeed(params: FeedParams) {
         .from('posts')
         .select(POST_SELECT)
         .eq('visibility', 'public')
+        .eq('show_in_feed', true)
         .limit(LIMIT)
 
       if (user?.id) q = q.eq('likes.user_id', user.id).eq('bookmarks.user_id', user.id)
@@ -151,7 +154,8 @@ export function usePost(id: string) {
           id, user_id, image_url, thumbnail_url, title, description, tags,
           lat, lng, address, city, district,
           like_count, comment_count, bookmark_count, view_count,
-          visibility, created_at, updated_at,
+          visibility, show_in_profile, show_in_feed, show_in_map,
+          created_at, updated_at,
           profiles(id, username, display_name, avatar_url, bio),
           likes(user_id),
           bookmarks(user_id)
@@ -181,6 +185,8 @@ export function useUserPosts(userId: string) {
         .select(POST_SELECT)
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
+      // 타인의 프로필에서는 show_in_profile = true 인 게시물만 노출
+      if (user?.id !== userId) q = q.eq('show_in_profile', true)
       if (user?.id) q = q.eq('likes.user_id', user.id).eq('bookmarks.user_id', user.id)
 
       const { data, error } = await q
