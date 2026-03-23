@@ -11,8 +11,16 @@ export function cn(...inputs: ClassValue[]) {
 
 import type { Profile } from '@/types'
 
-// A~Z 중 W 제외 (25개)
-const ANON_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVXYZ'.split('')
+// A~Z 중 W 제외 (25개), 각 알파벳에 대응하는 익명 이름
+export const ANON_NAMES: Record<string, string> = {
+  A: 'Alex', B: 'Blake', C: 'Charlie', D: 'Dana',
+  E: 'Ellis', F: 'Frankie', G: 'Gray', H: 'Harper',
+  I: 'Indigo', J: 'Jesse', K: 'Kai', L: 'Lane',
+  M: 'Morgan', N: 'Noel', O: 'Oakley', P: 'Parker',
+  Q: 'Quinn', R: 'Riley', S: 'Sage', T: 'Taylor',
+  U: 'Uri', V: 'Val', X: 'Xander', Y: 'Yuri', Z: 'Zen',
+}
+const ANON_LETTERS = Object.keys(ANON_NAMES)
 
 /**
  * postId를 기반으로 고정된 익명 알파벳을 결정
@@ -45,7 +53,7 @@ export function getDisplayProfile(
     profile: {
       id: 'anonymous',
       username: `anonymous-${letter.toLowerCase()}`,
-      display_name: letter,
+      display_name: ANON_NAMES[letter],
       avatar_url: `/anonymous/${letter.toLowerCase()}.png`,
       bio: null,
       website: null,

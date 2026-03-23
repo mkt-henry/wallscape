@@ -15,6 +15,7 @@ import {
   generateStoragePath,
   parseTagsFromString,
   cn,
+  ANON_NAMES,
 } from '@/lib/utils'
 import type { Location, UploadFormData } from '@/types'
 
@@ -475,7 +476,7 @@ export default function UploadPage() {
                         />
                         <div>
                           <p className="text-text-secondary text-sm font-semibold leading-tight">
-                            {previewLetter}
+                            {ANON_NAMES[previewLetter]}
                           </p>
                           {(location?.district || location?.city || location?.address) && (
                             <div className="flex items-center gap-1 mt-0.5">
