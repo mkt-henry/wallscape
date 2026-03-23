@@ -42,6 +42,7 @@ export default function UploadPage() {
   const [tagsInput, setTagsInput] = useState('')
   const [showInProfile, setShowInProfile] = useState(true)
   const [showInFeed, setShowInFeed] = useState(true)
+  const [showInMap, setShowInMap] = useState(true)
   const [previewLetter, setPreviewLetter] = useState(() => ANON_LETTERS[Math.floor(Math.random() * ANON_LETTERS.length)])
   const shuffleLetter = () => {
     let next: string
@@ -151,7 +152,7 @@ export default function UploadPage() {
           district: location.district || null,
           show_in_profile: showInProfile,
           show_in_feed: showInFeed,
-          show_in_map: true,
+          show_in_map: showInMap,
         })
         .select()
         .single()
@@ -397,6 +398,7 @@ export default function UploadPage() {
               {([
                 { label: '프로필 공개', desc: '끄면 익명 프로필로 노출', value: showInProfile, setter: setShowInProfile },
                 { label: '피드 노출', desc: '다른 사람의 피드에 표시', value: showInFeed, setter: setShowInFeed },
+                { label: '지도 노출', desc: '지도에서 검색 가능', value: showInMap, setter: setShowInMap },
               ]).map((opt) => (
                 <button
                   key={opt.label}
