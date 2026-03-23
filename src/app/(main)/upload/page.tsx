@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react'
 import { getSupabaseClient } from '@/lib/supabase/client'
@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import { ImagePicker } from '@/components/upload/ImagePicker'
 import { LocationPicker } from '@/components/upload/LocationPicker'
 import { Button } from '@/components/ui/Button'
+import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
 import {
   resizeImage,
@@ -18,6 +19,8 @@ import {
 import type { Location, UploadFormData } from '@/types'
 
 type UploadStep = 'image' | 'location' | 'info' | 'publishing'
+
+const ANON_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVXYZ'.split('')
 
 const STEPS: { key: UploadStep; label: string }[] = [
   { key: 'image', label: '사진' },
@@ -39,6 +42,7 @@ export default function UploadPage() {
   const [showInProfile, setShowInProfile] = useState(true)
   const [showInFeed, setShowInFeed] = useState(true)
   const [showInMap, setShowInMap] = useState(true)
+  const previewLetter = useMemo(() => ANON_LETTERS[Math.floor(Math.random() * ANON_LETTERS.length)], [])
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -408,6 +412,24 @@ export default function UploadPage() {
                   </button>
                 ))}
               </div>
+
+              {/* 익명 프로필 미리보기 */}
+              {!showInProfile && (
+                <div className="mt-3 p-3 bg-surface rounded-2xl border border-border">
+                  <p className="text-text-muted text-xs mb-2">다른 사람에게 이렇게 보여요</p>
+                  <div className="flex items-center gap-3">
+                    <Avatar
+                      src={`/anonymous/${previewLetter.toLowerCase()}.png`}
+                      username={`anonymous-${previewLetter.toLowerCase()}`}
+                      size="sm"
+                    />
+                    <div>
+                      <p className="text-white text-sm font-semibold">{previewLetter}</p>
+                      <p className="text-text-muted text-xs">랜덤 프로필로 표시됩니다</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
