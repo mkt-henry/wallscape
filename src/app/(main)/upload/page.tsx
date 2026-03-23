@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, X, Heart, MessageCircle, Bookmark, MapPin, RefreshCw } from 'lucide-react'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { ImagePicker } from '@/components/upload/ImagePicker'
@@ -31,7 +31,7 @@ const STEPS: { key: UploadStep; label: string }[] = [
 
 export default function UploadPage() {
   const router = useRouter()
-  const { user, session } = useAuthStore()
+  const { user, session, profile } = useAuthStore()
 
   const [step, setStep] = useState<UploadStep>('image')
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
@@ -42,8 +42,12 @@ export default function UploadPage() {
   const [tagsInput, setTagsInput] = useState('')
   const [showInProfile, setShowInProfile] = useState(true)
   const [showInFeed, setShowInFeed] = useState(true)
-  const [showInMap, setShowInMap] = useState(true)
-  const previewLetter = useMemo(() => ANON_LETTERS[Math.floor(Math.random() * ANON_LETTERS.length)], [])
+  const [previewLetter, setPreviewLetter] = useState(() => ANON_LETTERS[Math.floor(Math.random() * ANON_LETTERS.length)])
+  const shuffleLetter = () => {
+    let next: string
+    do { next = ANON_LETTERS[Math.floor(Math.random() * ANON_LETTERS.length)] } while (next === previewLetter)
+    setPreviewLetter(next)
+  }
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -147,7 +151,7 @@ export default function UploadPage() {
           district: location.district || null,
           show_in_profile: showInProfile,
           show_in_feed: showInFeed,
-          show_in_map: showInMap,
+          show_in_map: true,
         })
         .select()
         .single()
@@ -389,87 +393,156 @@ export default function UploadPage() {
             )}
 
             {/* Toggles */}
-            <div>
-              <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
-                공개 범위
-              </label>
-              <div className="bg-surface-2 rounded-2xl divide-y divide-border overflow-hidden">
-                {([
-                  { label: '프로필 공개', desc: '끄면 익명 프로필로 노출', value: showInProfile, setter: setShowInProfile },
-                  { label: '피드 노출', desc: '다른 사람의 피드에 표시', value: showInFeed, setter: setShowInFeed },
-                  { label: '지도 노출', desc: '지도에서 검색 가능', value: showInMap, setter: setShowInMap },
-                ]).map((opt) => (
-                  <button
-                    key={opt.label}
-                    type="button"
-                    onClick={() => opt.setter(!opt.value)}
-                    className="w-full flex items-center justify-between px-4 py-3 tap-highlight-none"
+            <div className="bg-surface-2 rounded-2xl divide-y divide-border overflow-hidden">
+              {([
+                { label: '프로필 공개', desc: '끄면 익명 프로필로 노출', value: showInProfile, setter: setShowInProfile },
+                { label: '피드 노출', desc: '다른 사람의 피드에 표시', value: showInFeed, setter: setShowInFeed },
+              ]).map((opt) => (
+                <button
+                  key={opt.label}
+                  type="button"
+                  onClick={() => opt.setter(!opt.value)}
+                  className="w-full flex items-center justify-between px-4 py-3.5 tap-highlight-none"
+                >
+                  <div className="text-left">
+                    <p className="text-white text-sm font-medium">{opt.label}</p>
+                    <p className="text-text-muted text-xs">{opt.desc}</p>
+                  </div>
+                  <div
+                    className={cn(
+                      'relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0',
+                      opt.value ? 'bg-primary' : 'bg-surface-3'
+                    )}
                   >
-                    <div className="text-left">
-                      <p className="text-white text-sm font-medium">{opt.label}</p>
-                      <p className="text-text-muted text-xs">{opt.desc}</p>
-                    </div>
-                    <div
+                    <span
                       className={cn(
-                        'relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0',
-                        opt.value ? 'bg-primary' : 'bg-surface-3'
+                        'absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200',
+                        opt.value ? 'translate-x-5' : 'translate-x-0'
                       )}
-                    >
-                      <span
-                        className={cn(
-                          'absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200',
-                          opt.value ? 'translate-x-5' : 'translate-x-0'
-                        )}
-                      />
-                    </div>
-                  </button>
-                ))}
-              </div>
+                    />
+                  </div>
+                </button>
+              ))}
             </div>
 
-            {/* 익명 프로필 미리보기 */}
-            {!showInProfile && (
-              <div className="p-4 bg-surface rounded-2xl border border-border">
-                <p className="text-text-muted text-xs mb-3">다른 사람에게 이렇게 보여요</p>
-                <div className="flex items-center gap-3">
-                  <Avatar
-                    src={`/anonymous/${previewLetter.toLowerCase()}.png`}
-                    username={`anonymous-${previewLetter.toLowerCase()}`}
-                    size="md"
-                  />
-                  <div>
-                    <p className="text-white text-base font-bold">{previewLetter}</p>
-                    <p className="text-text-muted text-xs">게시 시 A~Z 랜덤 배정</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 미리보기 요약 */}
-            <div className="p-4 bg-surface-2 rounded-2xl space-y-2">
-              <p className="text-text-secondary text-xs font-medium uppercase tracking-wide">요약</p>
-              <div className="flex items-center gap-3">
-                {imagePreview && (
-                  <img src={imagePreview} alt="" className="w-12 h-12 rounded-xl object-cover" />
+            {/* 피드 미리보기 */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-text-secondary text-xs font-medium uppercase tracking-wide">
+                  피드 미리보기
+                </p>
+                {!showInProfile && (
+                  <button
+                    type="button"
+                    onClick={shuffleLetter}
+                    className="flex items-center gap-1 text-primary text-xs font-medium tap-highlight-none active:scale-95 transition-transform"
+                  >
+                    <RefreshCw size={12} />
+                    셔플
+                  </button>
                 )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm font-semibold truncate">{title}</p>
-                  {location?.address && (
-                    <p className="text-text-muted text-xs truncate">📍 {location.address}</p>
+              </div>
+
+              {showInFeed ? (
+                <article className="bg-surface rounded-3xl overflow-hidden shadow-card">
+                  {/* Author header */}
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    {showInProfile ? (
+                      <>
+                        <Avatar src={profile?.avatar_url} username={profile?.username || 'me'} size="sm" />
+                        <div>
+                          <p className="text-white text-sm font-semibold leading-tight">
+                            {profile?.display_name || profile?.username || '나'}
+                          </p>
+                          {(location?.district || location?.city || location?.address) && (
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <MapPin size={10} className="text-primary" />
+                              <span className="text-text-secondary text-xs">
+                                {location.district || location.city || location.address}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Avatar
+                          src={`/anonymous/${previewLetter.toLowerCase()}.png`}
+                          username={`anonymous-${previewLetter.toLowerCase()}`}
+                          size="sm"
+                        />
+                        <div>
+                          <p className="text-text-secondary text-sm font-semibold leading-tight">
+                            {previewLetter}
+                          </p>
+                          {(location?.district || location?.city || location?.address) && (
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <MapPin size={10} className="text-primary" />
+                              <span className="text-text-secondary text-xs">
+                                {location.district || location.city || location.address}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Image */}
+                  {imagePreview && (
+                    <div className="relative w-full aspect-square bg-surface-2">
+                      <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
                   )}
+
+                  {/* Actions */}
+                  <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1.5">
+                        <Heart size={22} className="text-white" />
+                        <span className="text-sm font-medium text-white">0</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <MessageCircle size={22} className="text-white" />
+                        <span className="text-sm font-medium text-white">0</span>
+                      </div>
+                    </div>
+                    <Bookmark size={22} className="text-white" />
+                  </div>
+
+                  {/* Content */}
+                  <div className="px-4 pb-4 space-y-1.5">
+                    <h3 className="text-white font-semibold text-sm leading-snug line-clamp-1">
+                      {title || '제목 없음'}
+                    </h3>
+                    {description && (
+                      <p className="text-text-secondary text-sm leading-relaxed line-clamp-2">
+                        {description}
+                      </p>
+                    )}
+                    {tagsInput && (
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        {parseTagsFromString(tagsInput).slice(0, 4).map((tag) => (
+                          <span key={tag} className="text-primary text-xs font-medium">#{tag}</span>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-text-muted text-xs pt-1">방금 전</p>
+                  </div>
+                </article>
+              ) : (
+                <div className="bg-surface rounded-3xl p-8 flex flex-col items-center gap-3 border border-dashed border-border">
+                  <div className="w-12 h-12 rounded-2xl bg-surface-2 flex items-center justify-center">
+                    <span className="text-2xl">🔒</span>
+                  </div>
+                  <p className="text-text-secondary text-sm text-center">
+                    피드에 노출되지 않습니다
+                  </p>
+                  <p className="text-text-muted text-xs text-center">
+                    지도와 직접 링크로만 접근 가능
+                  </p>
                 </div>
-              </div>
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                <span className={cn('text-xs px-2 py-0.5 rounded-full', showInProfile ? 'bg-primary/15 text-primary' : 'bg-surface-3 text-text-muted')}>
-                  {showInProfile ? '프로필 공개' : '익명'}
-                </span>
-                <span className={cn('text-xs px-2 py-0.5 rounded-full', showInFeed ? 'bg-primary/15 text-primary' : 'bg-surface-3 text-text-muted')}>
-                  {showInFeed ? '피드 노출' : '피드 숨김'}
-                </span>
-                <span className={cn('text-xs px-2 py-0.5 rounded-full', showInMap ? 'bg-primary/15 text-primary' : 'bg-surface-3 text-text-muted')}>
-                  {showInMap ? '지도 노출' : '지도 숨김'}
-                </span>
-              </div>
+              )}
             </div>
           </div>
         )}
