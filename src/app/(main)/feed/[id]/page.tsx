@@ -19,12 +19,16 @@ import {
   Trash2,
   Flag,
   Link as LinkIcon,
+  Camera,
+  CheckCircle2,
+  XCircle,
+  Clock,
 } from 'lucide-react'
-import { usePost, useLikePost, useBookmarkPost, useComments, useAddComment, useArchivePost, useDeletePost } from '@/hooks/usePosts'
+import { usePost, useLikePost, useBookmarkPost, useComments, useAddComment, useArchivePost, useDeletePost, useReportStatus, useMyStatusReport } from '@/hooks/usePosts'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Avatar } from '@/components/ui/Avatar'
 import { ActionSheet } from '@/components/ui/BottomSheet'
-import { formatRelativeTime, formatNumber, cn, getDisplayProfile } from '@/lib/utils'
+import { formatRelativeTime, formatNumber, formatDate, cn, getDisplayProfile } from '@/lib/utils'
 
 const MiniMap = dynamic(() => import('@/components/map/MiniMap'), {
   ssr: false,
@@ -49,6 +53,8 @@ export default function PostDetailPage({ params }: Props) {
   const { mutate: addComment, isPending: isSubmittingComment } = useAddComment()
   const { mutate: archivePost } = useArchivePost()
   const { mutate: deletePost } = useDeletePost()
+  const { mutate: reportStatus, isPending: isReporting } = useReportStatus()
+  const { data: myReport } = useMyStatusReport(id)
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault()
@@ -266,7 +272,84 @@ export default function PostDetailPage({ params }: Props) {
               <MiniMap lat={post.lat} lng={post.lng} address={post.address ?? undefined} postId={post.id} />
             )}
 
+            {/* Photo taken date */}
+            {post.photo_taken_at && (
+              <div className="flex items-center gap-2">
+                <Camera size={16} className="text-text-muted shrink-0" />
+                <span className="text-text-secondary text-sm">
+                  촬영일: {formatDate(post.photo_taken_at)}
+                </span>
+              </div>
+            )}
+
             <p className="text-text-muted text-xs">{formatRelativeTime(post.created_at)}</p>
+
+            {/* Status report section */}
+            <div className="bg-surface-2 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-white text-sm font-semibold">현재 상태</h4>
+                {post.last_confirmed_at && (
+                  <span className="text-text-muted text-xs flex items-center gap-1">
+                    <Clock size={12} />
+                    마지막 확인: {formatRelativeTime(post.last_confirmed_at)}
+                  </span>
+                )}
+              </div>
+
+              {/* Status summary */}
+              {(post.still_there_count > 0 || post.gone_count > 0) && (
+                <div className="flex items-center gap-4">
+                  {post.still_there_count > 0 && (
+                    <div className="flex items-center gap-1.5 text-green-400">
+                      <CheckCircle2 size={16} />
+                      <span className="text-sm font-medium">{post.still_there_count}명이 확인</span>
+                    </div>
+                  )}
+                  {post.gone_count > 0 && (
+                    <div className="flex items-center gap-1.5 text-red-400">
+                      <XCircle size={16} />
+                      <span className="text-sm font-medium">{post.gone_count}명이 없어짐 보고</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {post.still_there_count === 0 && post.gone_count === 0 && (
+                <p className="text-text-muted text-sm">아직 상태 보고가 없습니다</p>
+              )}
+
+              {/* Report buttons */}
+              {user && !isOwnPost && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => reportStatus({ postId: post.id, status: 'still_there' })}
+                    disabled={isReporting}
+                    className={cn(
+                      'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all tap-highlight-none',
+                      myReport?.status === 'still_there'
+                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                        : 'bg-surface-3 text-text-secondary hover:bg-surface-3/80'
+                    )}
+                  >
+                    <CheckCircle2 size={16} />
+                    아직 있어요
+                  </button>
+                  <button
+                    onClick={() => reportStatus({ postId: post.id, status: 'gone' })}
+                    disabled={isReporting}
+                    className={cn(
+                      'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all tap-highlight-none',
+                      myReport?.status === 'gone'
+                        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                        : 'bg-surface-3 text-text-secondary hover:bg-surface-3/80'
+                    )}
+                  >
+                    <XCircle size={16} />
+                    없어졌어요
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Divider */}
             <div className="h-px bg-border" />

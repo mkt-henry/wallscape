@@ -2,11 +2,11 @@
 
 import { useRef, useState } from 'react'
 import { Camera, Image as ImageIcon, X, RotateCcw, MapPin } from 'lucide-react'
-import { extractExifLocation, createObjectURL, revokeObjectURL, cn } from '@/lib/utils'
+import { extractExifData, createObjectURL, revokeObjectURL, cn } from '@/lib/utils'
 import type { Location } from '@/types'
 
 interface ImagePickerProps {
-  onSelect: (file: File, preview: string, exifLocation?: Location) => void
+  onSelect: (file: File, preview: string, exifLocation?: Location, photoTakenAt?: string) => void
   selectedImage: File | null
   preview: string | null
 }
@@ -40,13 +40,13 @@ export function ImagePicker({ onSelect, selectedImage, preview }: ImagePickerPro
     // Create preview
     const previewUrl = createObjectURL(file)
 
-    // Extract EXIF GPS
+    // Extract EXIF data (GPS + date)
     setIsExtracting(true)
-    const exifLocation = await extractExifLocation(file)
+    const exifData = await extractExifData(file)
     setIsExtracting(false)
-    setExifFound(!!exifLocation)
+    setExifFound(!!exifData.location)
 
-    onSelect(file, previewUrl, exifLocation || undefined)
+    onSelect(file, previewUrl, exifData.location || undefined, exifData.takenAt || undefined)
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

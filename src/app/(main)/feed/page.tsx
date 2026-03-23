@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { Bell, Search, ArrowUp } from 'lucide-react'
+import { Bell, Search, ArrowUp, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useInfiniteFeed } from '@/hooks/usePosts'
 import { useLocation } from '@/hooks/useLocation'
@@ -204,12 +204,22 @@ export default function FeedPage() {
         )}
       </div>
 
+      {/* Upload FAB */}
+      <Link
+        href="/upload"
+        className="fixed right-4 z-30 w-14 h-14 rounded-full bg-gradient-brand shadow-glow-primary flex items-center justify-center tap-highlight-none active:scale-90 transition-transform md:bottom-8"
+        style={{ bottom: 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 16px)' }}
+        aria-label="업로드"
+      >
+        <Plus size={28} className="text-white" strokeWidth={2.5} />
+      </Link>
+
       {/* Scroll-to-top button */}
       {showScrollTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className="fixed right-4 z-30 w-11 h-11 rounded-full bg-surface border border-border shadow-lg flex items-center justify-center tap-highlight-none active:scale-90 transition-transform md:bottom-8"
-          style={{ bottom: 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 16px)' }}
+          style={{ bottom: 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 80px)' }}
           aria-label="맨 위로"
         >
           <ArrowUp size={20} className="text-white" />

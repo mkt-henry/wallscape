@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, MessageCircle, Bookmark, MapPin, MoreHorizontal, Archive, EyeOff } from 'lucide-react'
+import { Heart, MessageCircle, Bookmark, MapPin, MoreHorizontal, Archive, EyeOff, CheckCircle2, XCircle } from 'lucide-react'
 import { useLikePost, useBookmarkPost, useArchivePost } from '@/hooks/usePosts'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Avatar } from '@/components/ui/Avatar'
@@ -240,10 +240,23 @@ export function PostCard({ post, showLocation = true, priority = false }: PostCa
           </div>
         )}
 
-        {/* Timestamp */}
-        <p className="text-text-muted text-xs pt-1">
-          {formatRelativeTime(post.created_at)}
-        </p>
+        {/* Status + Timestamp */}
+        <div className="flex items-center gap-2 pt-1">
+          {post.gone_count > 0 && post.gone_count >= post.still_there_count ? (
+            <span className="flex items-center gap-1 text-red-400 text-xs">
+              <XCircle size={12} />
+              없어짐
+            </span>
+          ) : post.still_there_count > 0 ? (
+            <span className="flex items-center gap-1 text-green-400 text-xs">
+              <CheckCircle2 size={12} />
+              확인됨
+            </span>
+          ) : null}
+          <p className="text-text-muted text-xs">
+            {formatRelativeTime(post.created_at)}
+          </p>
+        </div>
       </div>
       {isOwnPost && (
         <ActionSheet

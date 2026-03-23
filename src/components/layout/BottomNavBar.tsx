@@ -2,21 +2,21 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Map, PlusSquare, Bell, User, type LucideIcon } from 'lucide-react'
+import { Home, Palette, Map, MessageSquare, User, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
   href: string
   icon: LucideIcon
   label: string
-  isUpload?: boolean
+  isCenter?: boolean
 }
 
 const NAV_ITEMS: NavItem[] = [
   { href: '/feed', icon: Home, label: '피드' },
-  { href: '/map', icon: Map, label: '지도' },
-  { href: '/upload', icon: PlusSquare, label: '올리기', isUpload: true },
-  { href: '/activity', icon: Bell, label: '알림' },
+  { href: '/artists', icon: Palette, label: '작가' },
+  { href: '/map', icon: Map, label: '지도', isCenter: true },
+  { href: '/community', icon: MessageSquare, label: '커뮤니티' },
   { href: '/profile', icon: User, label: '프로필' },
 ]
 
@@ -41,7 +41,7 @@ export function BottomNavBar() {
           const active = isActive(item.href)
           const Icon = item.icon
 
-          if (item.isUpload) {
+          if (item.isCenter) {
             return (
               <Link
                 key={item.href}

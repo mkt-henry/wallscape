@@ -139,54 +139,77 @@ export function formatDistance(meters: number): string {
   return `${(meters / 1000).toFixed(1)}km`
 }
 
-// ---- EXIF GPS extraction ------------------------------------
+// ---- EXIF extraction (GPS + date) ---------------------------
 
 export interface ExifLocation {
   lat: number
   lng: number
 }
 
-export async function extractExifLocation(
+export interface ExifData {
+  location: ExifLocation | null
+  takenAt: string | null // ISO date string
+}
+
+export async function extractExifData(
   file: File
-): Promise<ExifLocation | null> {
+): Promise<ExifData> {
+  const result: ExifData = { location: null, takenAt: null }
   try {
     const exifrModule = await import('exifr')
     const exifr = exifrModule.default || exifrModule
-
-    // Read file as ArrayBuffer first for reliable mobile support
     const buffer = await file.arrayBuffer()
 
-    // Try exifr.gps() with ArrayBuffer
+    // Extract date
     try {
-      const gps = await exifr.gps(buffer)
-      if (gps && Number.isFinite(gps.latitude) && Number.isFinite(gps.longitude)) {
-        return { lat: gps.latitude, lng: gps.longitude }
-      }
-    } catch {
-      // gps() failed, try parse() fallback below
-    }
-
-    // Fallback: parse raw GPS tags and convert manually
-    try {
-      const tags = await exifr.parse(buffer, {
-        pick: ['GPSLatitude', 'GPSLatitudeRef', 'GPSLongitude', 'GPSLongitudeRef'],
+      const dateTags = await exifr.parse(buffer, {
+        pick: ['DateTimeOriginal', 'CreateDate', 'DateTimeDigitized', 'GPSLatitude', 'GPSLatitudeRef', 'GPSLongitude', 'GPSLongitudeRef'],
       })
-      if (tags?.GPSLatitude && tags?.GPSLongitude) {
-        const lat = dmsToDecimal(tags.GPSLatitude, tags.GPSLatitudeRef)
-        const lng = dmsToDecimal(tags.GPSLongitude, tags.GPSLongitudeRef)
+      const dateValue = dateTags?.DateTimeOriginal || dateTags?.CreateDate || dateTags?.DateTimeDigitized
+      if (dateValue instanceof Date) {
+        result.takenAt = dateValue.toISOString()
+      } else if (typeof dateValue === 'string') {
+        const parsed = new Date(dateValue)
+        if (!isNaN(parsed.getTime())) result.takenAt = parsed.toISOString()
+      }
+
+      // Also try GPS from same parse
+      if (dateTags?.GPSLatitude && dateTags?.GPSLongitude) {
+        const lat = dmsToDecimal(dateTags.GPSLatitude, dateTags.GPSLatitudeRef)
+        const lng = dmsToDecimal(dateTags.GPSLongitude, dateTags.GPSLongitudeRef)
         if (Number.isFinite(lat) && Number.isFinite(lng)) {
-          return { lat, lng }
+          result.location = { lat, lng }
         }
       }
     } catch {
-      // parse() also failed
+      // parse failed
     }
 
-    return null
+    // If no GPS yet, try exifr.gps()
+    if (!result.location) {
+      try {
+        const gps = await exifr.gps(buffer)
+        if (gps && Number.isFinite(gps.latitude) && Number.isFinite(gps.longitude)) {
+          result.location = { lat: gps.latitude, lng: gps.longitude }
+        }
+      } catch {
+        // gps() failed
+      }
+    }
+
+    return result
   } catch (error) {
     console.warn('EXIF extraction failed:', error)
-    return null
+    return result
   }
+}
+
+/** @deprecated Use extractExifData instead */
+export async function extractExifLocation(
+  file: File
+): Promise<ExifLocation | null> {
+  const { location } = await extractExifData(file)
+  return location
 }
 
 /** Convert GPS DMS (degrees/minutes/seconds) array to decimal degrees */

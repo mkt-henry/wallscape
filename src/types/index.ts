@@ -38,6 +38,45 @@ export interface ProfileWithFollow extends Profile {
   is_follower: boolean
 }
 
+export interface VerifiedArtist extends Profile {
+  is_verified: boolean
+}
+
+// ---- Community / Board -------------------------------------
+
+export type BoardCategory = 'general' | 'question' | 'meetup' | 'tips' | 'showcase'
+
+export interface BoardPost {
+  id: string
+  user_id: string
+  title: string
+  content: string
+  category: BoardCategory
+  like_count: number
+  comment_count: number
+  view_count: number
+  is_pinned: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface BoardPostWithUser extends BoardPost {
+  profiles: Profile
+}
+
+export interface BoardComment {
+  id: string
+  board_post_id: string
+  user_id: string
+  content: string
+  created_at: string
+  updated_at: string
+}
+
+export interface BoardCommentWithUser extends BoardComment {
+  profiles: Profile
+}
+
 // ---- Post --------------------------------------------------
 
 export type PostVisibility = 'public' | 'followers' | 'private'
@@ -64,6 +103,10 @@ export interface Post {
   show_in_profile: boolean
   show_in_feed: boolean
   show_in_map: boolean
+  photo_taken_at: string | null
+  still_there_count: number
+  gone_count: number
+  last_confirmed_at: string | null
   status: PostStatus
   archived_at: string | null
   created_at: string
@@ -177,6 +220,23 @@ export interface UploadFormData {
   showInProfile: boolean
   showInFeed: boolean
   showInMap: boolean
+  photoTakenAt: string | null
+}
+
+// ---- Status Report -------------------------------------------
+
+export type StatusReportType = 'still_there' | 'gone'
+
+export interface StatusReport {
+  id: string
+  post_id: string
+  user_id: string
+  status: StatusReportType
+  created_at: string
+}
+
+export interface StatusReportWithUser extends StatusReport {
+  profiles: Profile
 }
 
 // ---- Search ------------------------------------------------

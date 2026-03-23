@@ -50,6 +50,7 @@ export default function UploadPage() {
     do { next = ANON_LETTERS[Math.floor(Math.random() * ANON_LETTERS.length)] } while (next === previewLetter)
     setPreviewLetter(next)
   }
+  const [photoTakenAt, setPhotoTakenAt] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -58,11 +59,14 @@ export default function UploadPage() {
 
   const currentStepIndex = STEPS.findIndex((s) => s.key === step)
 
-  const handleImageSelect = useCallback((file: File, preview: string, exifLocation?: Location) => {
+  const handleImageSelect = useCallback((file: File, preview: string, exifLocation?: Location, takenAt?: string) => {
     setSelectedImage(file)
     setImagePreview(preview)
     if (exifLocation && !location) {
       setLocation(exifLocation)
+    }
+    if (takenAt) {
+      setPhotoTakenAt(takenAt)
     }
   }, [location])
 
@@ -154,6 +158,7 @@ export default function UploadPage() {
           show_in_profile: showInProfile,
           show_in_feed: showInFeed,
           show_in_map: showInMap,
+          photo_taken_at: photoTakenAt,
         })
         .select()
         .single()

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Map, PlusSquare, Bell, User, type LucideIcon } from 'lucide-react'
+import { Home, Palette, Map, MessageSquare, User, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/Logo'
 
@@ -10,14 +10,14 @@ interface NavItem {
   href: string
   icon: LucideIcon
   label: string
-  isUpload?: boolean
+  isCenter?: boolean
 }
 
 const NAV_ITEMS: NavItem[] = [
   { href: '/feed', icon: Home, label: '피드' },
-  { href: '/map', icon: Map, label: '지도' },
-  { href: '/upload', icon: PlusSquare, label: '올리기', isUpload: true },
-  { href: '/activity', icon: Bell, label: '알림' },
+  { href: '/artists', icon: Palette, label: '작가' },
+  { href: '/map', icon: Map, label: '지도', isCenter: true },
+  { href: '/community', icon: MessageSquare, label: '커뮤니티' },
   { href: '/profile', icon: User, label: '프로필' },
 ]
 
@@ -43,7 +43,7 @@ export function SideNav() {
           const active = isActive(item.href)
           const Icon = item.icon
 
-          if (item.isUpload) {
+          if (item.isCenter) {
             return (
               <Link
                 key={item.href}
@@ -53,7 +53,7 @@ export function SideNav() {
                 <div className="w-10 h-10 rounded-xl bg-gradient-brand flex items-center justify-center shadow-glow-primary transition-transform group-active:scale-90 shrink-0">
                   <Icon size={20} className="text-white" strokeWidth={2} />
                 </div>
-                <span className="hidden lg:block text-sm font-bold text-white">올리기</span>
+                <span className="hidden lg:block text-sm font-bold text-white">지도</span>
               </Link>
             )
           }

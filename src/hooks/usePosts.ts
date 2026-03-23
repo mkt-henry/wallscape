@@ -15,6 +15,7 @@ const POST_SELECT = `
   lat, lng, address, city, district,
   like_count, comment_count, bookmark_count, view_count,
   visibility, show_in_profile, show_in_feed, show_in_map,
+  photo_taken_at, still_there_count, gone_count, last_confirmed_at,
   created_at, updated_at,
   profiles(id, username, display_name, avatar_url),
   likes(user_id),
@@ -155,6 +156,7 @@ export function usePost(id: string) {
           lat, lng, address, city, district,
           like_count, comment_count, bookmark_count, view_count,
           visibility, show_in_profile, show_in_feed, show_in_map,
+          photo_taken_at, still_there_count, gone_count, last_confirmed_at,
           created_at, updated_at,
           profiles(id, username, display_name, avatar_url, bio),
           likes(user_id),
@@ -497,6 +499,90 @@ export function useArchivedPosts(userId: string) {
       return ((data ?? []) as Record<string, unknown>[]).map((p) => mapPost(p, user?.id))
     },
     enabled: !!userId && !!user && user.id === userId,
+  })
+}
+
+// ---- Status reports (still there / gone) -----------------------
+
+export function useStatusReports(postId: string) {
+  return useQuery({
+    queryKey: ['status_reports', postId],
+    queryFn: async () => {
+      const supabase = getSupabaseClient()
+      const { data, error } = await supabase
+        .from('status_reports')
+        .select('*, profiles(id, username, display_name, avatar_url)')
+        .eq('post_id', postId)
+        .order('created_at', { ascending: false })
+        .limit(10)
+      if (error) throw error
+      return data ?? []
+    },
+    enabled: !!postId,
+  })
+}
+
+export function useMyStatusReport(postId: string) {
+  const { user } = useAuthStore()
+  return useQuery({
+    queryKey: ['status_reports', postId, 'mine', user?.id],
+    queryFn: async () => {
+      if (!user) return null
+      const supabase = getSupabaseClient()
+      const { data } = await supabase
+        .from('status_reports')
+        .select('*')
+        .eq('post_id', postId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+      return data
+    },
+    enabled: !!postId && !!user,
+  })
+}
+
+export function useReportStatus() {
+  const queryClient = useQueryClient()
+  const { user } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async ({ postId, status }: { postId: string; status: 'still_there' | 'gone' }) => {
+      if (!user) throw new Error('로그인이 필요합니다')
+      const supabase = getSupabaseClient()
+
+      // Upsert the report
+      const { error } = await supabase
+        .from('status_reports')
+        .upsert(
+          { post_id: postId, user_id: user.id, status, created_at: new Date().toISOString() },
+          { onConflict: 'post_id,user_id' }
+        )
+      if (error) throw error
+
+      // Update counts on the post
+      const { data: counts } = await supabase
+        .from('status_reports')
+        .select('status')
+        .eq('post_id', postId)
+      const stillCount = counts?.filter((r) => r.status === 'still_there').length ?? 0
+      const goneCount = counts?.filter((r) => r.status === 'gone').length ?? 0
+
+      await supabase
+        .from('posts')
+        .update({
+          still_there_count: stillCount,
+          gone_count: goneCount,
+          last_confirmed_at: status === 'still_there' ? new Date().toISOString() : undefined,
+        })
+        .eq('id', postId)
+
+      return { postId, status }
+    },
+    onSuccess: (_, { postId }) => {
+      queryClient.invalidateQueries({ queryKey: ['status_reports', postId] })
+      queryClient.invalidateQueries({ queryKey: postKeys.detail(postId) })
+      queryClient.invalidateQueries({ queryKey: postKeys.all })
+    },
   })
 }
 
