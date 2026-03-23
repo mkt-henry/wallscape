@@ -18,7 +18,7 @@ import {
 } from '@/lib/utils'
 import type { Location, UploadFormData } from '@/types'
 
-type UploadStep = 'image' | 'location' | 'info' | 'publishing'
+type UploadStep = 'image' | 'location' | 'info' | 'visibility' | 'publishing'
 
 const ANON_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVXYZ'.split('')
 
@@ -26,6 +26,7 @@ const STEPS: { key: UploadStep; label: string }[] = [
   { key: 'image', label: '사진' },
   { key: 'location', label: '위치' },
   { key: 'info', label: '정보' },
+  { key: 'visibility', label: '공개' },
 ]
 
 export default function UploadPage() {
@@ -60,7 +61,7 @@ export default function UploadPage() {
   }, [location])
 
   const handleNext = () => {
-    const steps: UploadStep[] = ['image', 'location', 'info']
+    const steps: UploadStep[] = ['image', 'location', 'info', 'visibility']
     const currentIndex = steps.indexOf(step)
     if (currentIndex < steps.length - 1) {
       setStep(steps[currentIndex + 1])
@@ -68,7 +69,7 @@ export default function UploadPage() {
   }
 
   const handleBack = () => {
-    const steps: UploadStep[] = ['image', 'location', 'info']
+    const steps: UploadStep[] = ['image', 'location', 'info', 'visibility']
     const currentIndex = steps.indexOf(step)
     if (currentIndex > 0) {
       setStep(steps[currentIndex - 1])
@@ -161,7 +162,7 @@ export default function UploadPage() {
       }, 500)
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : '업로드 중 오류가 발생했습니다')
-      setStep('info')
+      setStep('visibility')
       setIsUploading(false)
     }
   }
@@ -206,7 +207,7 @@ export default function UploadPage() {
             <div className="p-4 bg-error/10 border border-error/30 rounded-2xl text-left">
               <p className="text-error text-sm">{uploadError}</p>
               <button
-                onClick={() => { setStep('info'); setIsUploading(false) }}
+                onClick={() => { setStep('visibility'); setIsUploading(false) }}
                 className="mt-3 text-primary text-sm font-semibold tap-highlight-none"
               >
                 돌아가기
@@ -375,14 +376,26 @@ export default function UploadPage() {
               </p>
             </div>
 
-            {/* Visibility */}
+          </div>
+        )}
+
+        {step === 'visibility' && (
+          <div className="px-4 pb-4 space-y-4">
+            {/* Upload error */}
+            {uploadError && (
+              <div className="p-4 bg-error/10 border border-error/30 rounded-2xl">
+                <p className="text-error text-sm">{uploadError}</p>
+              </div>
+            )}
+
+            {/* Toggles */}
             <div>
               <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
                 공개 범위
               </label>
               <div className="bg-surface-2 rounded-2xl divide-y divide-border overflow-hidden">
                 {([
-                  { label: '프로필 공개', desc: '끄면 공용 계정으로 노출', value: showInProfile, setter: setShowInProfile },
+                  { label: '프로필 공개', desc: '끄면 익명 프로필로 노출', value: showInProfile, setter: setShowInProfile },
                   { label: '피드 노출', desc: '다른 사람의 피드에 표시', value: showInFeed, setter: setShowInFeed },
                   { label: '지도 노출', desc: '지도에서 검색 가능', value: showInMap, setter: setShowInMap },
                 ]).map((opt) => (
@@ -412,24 +425,51 @@ export default function UploadPage() {
                   </button>
                 ))}
               </div>
+            </div>
 
-              {/* 익명 프로필 미리보기 */}
-              {!showInProfile && (
-                <div className="mt-3 p-3 bg-surface rounded-2xl border border-border">
-                  <p className="text-text-muted text-xs mb-2">다른 사람에게 이렇게 보여요</p>
-                  <div className="flex items-center gap-3">
-                    <Avatar
-                      src={`/anonymous/${previewLetter.toLowerCase()}.png`}
-                      username={`anonymous-${previewLetter.toLowerCase()}`}
-                      size="sm"
-                    />
-                    <div>
-                      <p className="text-white text-sm font-semibold">{previewLetter}</p>
-                      <p className="text-text-muted text-xs">랜덤 프로필로 표시됩니다</p>
-                    </div>
+            {/* 익명 프로필 미리보기 */}
+            {!showInProfile && (
+              <div className="p-4 bg-surface rounded-2xl border border-border">
+                <p className="text-text-muted text-xs mb-3">다른 사람에게 이렇게 보여요</p>
+                <div className="flex items-center gap-3">
+                  <Avatar
+                    src={`/anonymous/${previewLetter.toLowerCase()}.png`}
+                    username={`anonymous-${previewLetter.toLowerCase()}`}
+                    size="md"
+                  />
+                  <div>
+                    <p className="text-white text-base font-bold">{previewLetter}</p>
+                    <p className="text-text-muted text-xs">게시 시 A~Z 랜덤 배정</p>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
+
+            {/* 미리보기 요약 */}
+            <div className="p-4 bg-surface-2 rounded-2xl space-y-2">
+              <p className="text-text-secondary text-xs font-medium uppercase tracking-wide">요약</p>
+              <div className="flex items-center gap-3">
+                {imagePreview && (
+                  <img src={imagePreview} alt="" className="w-12 h-12 rounded-xl object-cover" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm font-semibold truncate">{title}</p>
+                  {location?.address && (
+                    <p className="text-text-muted text-xs truncate">📍 {location.address}</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                <span className={cn('text-xs px-2 py-0.5 rounded-full', showInProfile ? 'bg-primary/15 text-primary' : 'bg-surface-3 text-text-muted')}>
+                  {showInProfile ? '프로필 공개' : '익명'}
+                </span>
+                <span className={cn('text-xs px-2 py-0.5 rounded-full', showInFeed ? 'bg-primary/15 text-primary' : 'bg-surface-3 text-text-muted')}>
+                  {showInFeed ? '피드 노출' : '피드 숨김'}
+                </span>
+                <span className={cn('text-xs px-2 py-0.5 rounded-full', showInMap ? 'bg-primary/15 text-primary' : 'bg-surface-3 text-text-muted')}>
+                  {showInMap ? '지도 노출' : '지도 숨김'}
+                </span>
+              </div>
             </div>
           </div>
         )}
@@ -440,12 +480,12 @@ export default function UploadPage() {
         className="fixed left-0 right-0 px-4 pt-3 pb-4 border-t border-border bg-background/95 backdrop-blur-md z-[60] md:static md:z-auto md:bg-background md:backdrop-blur-none"
         style={{ bottom: 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom))' }}
       >
-        {step === 'info' ? (
+        {step === 'visibility' ? (
           <Button
             onClick={handlePublish}
             fullWidth
             size="lg"
-            disabled={!canProceedFromInfo || isUploading}
+            disabled={isUploading}
             isLoading={isUploading}
           >
             <span className="flex items-center gap-2">
@@ -460,7 +500,8 @@ export default function UploadPage() {
             size="lg"
             disabled={
               (step === 'image' && !canProceedFromImage) ||
-              (step === 'location' && !canProceedFromLocation)
+              (step === 'location' && !canProceedFromLocation) ||
+              (step === 'info' && !canProceedFromInfo)
             }
           >
             <span className="flex items-center gap-2">
