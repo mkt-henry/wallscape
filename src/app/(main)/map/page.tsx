@@ -33,11 +33,11 @@ if (typeof window !== 'undefined') {
 
 function MapContent() {
   const searchParams = useSearchParams()
-  const { center, setCenter, isBottomSheetOpen, closePostSheet } = useMapStore()
+  const { center, zoom, setCenter, isBottomSheetOpen, closePostSheet } = useMapStore()
   const { location, requestLocation } = useLocation()
 
   // Fetch nearby posts immediately — no need to wait for Kakao SDK
-  const { data: nearbyPosts } = useNearbyPosts(center.lat, center.lng)
+  const { data: nearbyPosts } = useNearbyPosts(center.lat, center.lng, zoom)
 
   // Handle URL params
   useEffect(() => {

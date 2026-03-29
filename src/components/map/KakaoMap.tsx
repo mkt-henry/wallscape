@@ -65,7 +65,7 @@ export function KakaoMap({ prefetchedPosts }: KakaoMapProps) {
   const { location } = useLocation()
 
   // Use prefetched posts from parent, also fetch from map's own center on pan
-  const { data: localPosts } = useNearbyPosts(center.lat, center.lng)
+  const { data: localPosts } = useNearbyPosts(center.lat, center.lng, zoom)
   const nearbyPosts = localPosts ?? prefetchedPosts
 
   // Load Kakao Maps SDK

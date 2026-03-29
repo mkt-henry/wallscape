@@ -1,45 +1,11 @@
 -- ============================================================
--- 009: Photo taken date + Status reports (still there / gone)
+-- 010: Fix get_nearby_posts — use PostGIS instead of earthdistance
+--
+-- Migration 009 switched to earth_distance/ll_to_earth which
+-- require the cube + earthdistance extensions (not enabled).
+-- Revert to PostGIS ST_DWithin / ST_Distance which are already
+-- available and leverage the GIST index on posts.location.
 -- ============================================================
-
--- ── 1. Add photo_taken_at to posts ──────────────────────────
-ALTER TABLE posts
-  ADD COLUMN IF NOT EXISTS photo_taken_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS still_there_count INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS gone_count INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS last_confirmed_at TIMESTAMPTZ;
-
--- ── 2. Status reports table ─────────────────────────────────
-
-CREATE TABLE IF NOT EXISTS status_reports (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  status TEXT NOT NULL CHECK (status IN ('still_there', 'gone')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  -- One active report per user per post
-  UNIQUE (post_id, user_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_status_reports_post ON status_reports (post_id, created_at DESC);
-
--- ── 3. RLS policies ─────────────────────────────────────────
-
-ALTER TABLE status_reports ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "status_reports_select" ON status_reports
-  FOR SELECT USING (true);
-
-CREATE POLICY "status_reports_insert" ON status_reports
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "status_reports_update" ON status_reports
-  FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "status_reports_delete" ON status_reports
-  FOR DELETE USING (auth.uid() = user_id);
-
--- ── 4. Update get_nearby_posts to include new fields ────────
 
 DROP FUNCTION IF EXISTS get_nearby_posts(DOUBLE PRECISION, DOUBLE PRECISION, INTEGER, INTEGER, UUID);
 
