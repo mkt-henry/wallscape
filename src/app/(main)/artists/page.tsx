@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Search, CheckCircle2 } from 'lucide-react'
+import { Search, CheckCircle2, Instagram } from 'lucide-react'
 import { useState } from 'react'
 import { useVerifiedArtists } from '@/hooks/useArtists'
 import { Avatar } from '@/components/ui/Avatar'
@@ -101,7 +101,15 @@ export default function ArtistsPage() {
                     </p>
                     <CheckCircle2 size={16} className="text-primary shrink-0" />
                   </div>
-                  <p className="text-text-secondary text-sm truncate">@{artist.username}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-text-secondary text-sm truncate">@{artist.username}</p>
+                    {artist.instagram_handle && (
+                      <span className="flex items-center gap-0.5 text-text-muted text-xs shrink-0">
+                        <Instagram size={11} />
+                        @{artist.instagram_handle}
+                      </span>
+                    )}
+                  </div>
                   {artist.bio && (
                     <p className="text-text-secondary text-xs mt-1 line-clamp-1">{artist.bio}</p>
                   )}

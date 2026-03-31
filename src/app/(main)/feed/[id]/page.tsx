@@ -268,7 +268,12 @@ export default function PostDetailPage({ params }: Props) {
                       className="flex items-center gap-2 bg-surface-2 rounded-full pl-1 pr-3 py-1 tap-highlight-none hover:bg-surface-3 transition-colors"
                     >
                       <Avatar src={artist.avatar_url} username={artist.username} size="xs" />
-                      <span className="text-white text-xs font-medium">{artist.display_name || artist.username}</span>
+                      <div>
+                        <span className="text-white text-xs font-medium block leading-tight">{artist.display_name || artist.username}</span>
+                        {artist.instagram_handle && (
+                          <span className="text-text-muted text-[10px] leading-tight">@{artist.instagram_handle}</span>
+                        )}
+                      </div>
                     </Link>
                   ))}
                 </div>
