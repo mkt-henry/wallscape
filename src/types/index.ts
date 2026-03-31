@@ -107,6 +107,7 @@ export interface Post {
   still_there_count: number
   gone_count: number
   last_confirmed_at: string | null
+  last_report_status: 'still_there' | 'gone' | null
   status: PostStatus
   archived_at: string | null
   created_at: string

@@ -290,7 +290,7 @@ export default function PostDetailPage({ params }: Props) {
 
               {/* Status verdict + last confirmed date */}
               <div className="flex items-center justify-between gap-3">
-                {post.gone_count > 0 && post.gone_count >= post.still_there_count ? (
+                {post.last_report_status === 'gone' ? (
                   <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">
                     <XCircle size={15} className="text-red-400" />
                     <span className="text-red-400 text-sm font-semibold">없어짐</span>

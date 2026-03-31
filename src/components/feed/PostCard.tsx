@@ -242,12 +242,12 @@ export function PostCard({ post, showLocation = true, priority = false }: PostCa
 
         {/* Status + Timestamp */}
         <div className="flex items-center gap-2 pt-1">
-          {post.gone_count > 0 && post.gone_count >= post.still_there_count ? (
+          {post.last_report_status === 'gone' ? (
             <span className="flex items-center gap-1 text-red-400 text-xs">
               <XCircle size={12} />
               없어짐
             </span>
-          ) : post.still_there_count > 0 ? (
+          ) : post.last_report_status === 'still_there' ? (
             <span className="flex items-center gap-1 text-green-400 text-xs">
               <CheckCircle2 size={12} />
               확인됨

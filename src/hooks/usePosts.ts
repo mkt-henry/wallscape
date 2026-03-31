@@ -15,7 +15,7 @@ const POST_SELECT = `
   lat, lng, address, city, district,
   like_count, comment_count, bookmark_count, view_count,
   visibility, show_in_profile, show_in_feed, show_in_map,
-  photo_taken_at, still_there_count, gone_count, last_confirmed_at,
+  photo_taken_at, still_there_count, gone_count, last_confirmed_at, last_report_status,
   created_at, updated_at,
   profiles(id, username, display_name, avatar_url),
   likes(user_id),
@@ -156,7 +156,7 @@ export function usePost(id: string) {
           lat, lng, address, city, district,
           like_count, comment_count, bookmark_count, view_count,
           visibility, show_in_profile, show_in_feed, show_in_map,
-          photo_taken_at, still_there_count, gone_count, last_confirmed_at,
+          photo_taken_at, still_there_count, gone_count, last_confirmed_at, last_report_status,
           created_at, updated_at,
           profiles(id, username, display_name, avatar_url, bio),
           likes(user_id),
@@ -573,6 +573,7 @@ export function useReportStatus() {
           still_there_count: stillCount,
           gone_count: goneCount,
           last_confirmed_at: status === 'still_there' ? new Date().toISOString() : undefined,
+          last_report_status: status,
         })
         .eq('id', postId)
 
