@@ -559,23 +559,7 @@ export function useReportStatus() {
         )
       if (error) throw error
 
-      // Update counts on the post
-      const { data: counts } = await supabase
-        .from('status_reports')
-        .select('status')
-        .eq('post_id', postId)
-      const stillCount = counts?.filter((r) => r.status === 'still_there').length ?? 0
-      const goneCount = counts?.filter((r) => r.status === 'gone').length ?? 0
-
-      await supabase
-        .from('posts')
-        .update({
-          still_there_count: stillCount,
-          gone_count: goneCount,
-          last_confirmed_at: status === 'still_there' ? new Date().toISOString() : undefined,
-          last_report_status: status,
-        })
-        .eq('id', postId)
+      // posts 업데이트는 DB 트리거(trigger_update_post_status)가 자동 처리
 
       return { postId, status }
     },
