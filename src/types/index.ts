@@ -25,7 +25,7 @@ export interface Profile {
   avatar_url: string | null
   bio: string | null
   website: string | null
-  instagram_handle: string | null
+  instagram_handle?: string | null
   location: string | null
   post_count: number
   follower_count: number
