@@ -23,9 +23,12 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  UserCheck,
+  Pencil,
+  X,
 } from 'lucide-react'
-import { usePost, useLikePost, useBookmarkPost, useComments, useAddComment, useArchivePost, useDeletePost, useReportStatus, useMyStatusReport } from '@/hooks/usePosts'
-import { useProfiles } from '@/hooks/useArtists'
+import { usePost, useLikePost, useBookmarkPost, useComments, useAddComment, useArchivePost, useDeletePost, useReportStatus, useMyStatusReport, useUpdateArtistTags } from '@/hooks/usePosts'
+import { useProfiles, useVerifiedArtists } from '@/hooks/useArtists'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Avatar } from '@/components/ui/Avatar'
 import { ActionSheet } from '@/components/ui/BottomSheet'
@@ -57,6 +60,11 @@ export default function PostDetailPage({ params }: Props) {
   const { mutate: reportStatus, isPending: isReporting } = useReportStatus()
   const { data: myReport } = useMyStatusReport(id)
   const { data: taggedArtists = [] } = useProfiles(post?.tagged_artist_ids ?? [])
+  const { mutate: updateArtistTags, isPending: isSavingTags } = useUpdateArtistTags()
+  const { data: verifiedArtists = [] } = useVerifiedArtists()
+  const [editingArtists, setEditingArtists] = useState(false)
+  const [artistSearch, setArtistSearch] = useState('')
+  const [pendingArtistIds, setPendingArtistIds] = useState<string[]>([])
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault()
@@ -257,26 +265,141 @@ export default function PostDetailPage({ params }: Props) {
             )}
 
             {/* Tagged Artists */}
-            {taggedArtists.length > 0 && (
+            {(taggedArtists.length > 0 || isOwnPost) && (
               <div className="space-y-2">
-                <p className="text-text-secondary text-xs font-medium uppercase tracking-wide">작가</p>
-                <div className="flex flex-wrap gap-2">
-                  {taggedArtists.map((artist) => (
-                    <Link
-                      key={artist.id}
-                      href={`/profile/${artist.username}`}
-                      className="flex items-center gap-2 bg-surface-2 rounded-full pl-1 pr-3 py-1 tap-highlight-none hover:bg-surface-3 transition-colors"
+                <div className="flex items-center justify-between">
+                  <p className="text-text-secondary text-xs font-medium uppercase tracking-wide">작가</p>
+                  {isOwnPost && !editingArtists && (
+                    <button
+                      onClick={() => {
+                        setPendingArtistIds(post.tagged_artist_ids ?? [])
+                        setEditingArtists(true)
+                      }}
+                      className="flex items-center gap-1 text-text-muted text-xs tap-highlight-none hover:text-primary transition-colors"
                     >
-                      <Avatar src={artist.avatar_url} username={artist.username} size="xs" />
-                      <div>
-                        <span className="text-white text-xs font-medium block leading-tight">{artist.display_name || artist.username}</span>
-                        {artist.instagram_handle && (
-                          <span className="text-text-muted text-[10px] leading-tight">@{artist.instagram_handle}</span>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
+                      <Pencil size={11} />
+                      편집
+                    </button>
+                  )}
                 </div>
+
+                {!editingArtists ? (
+                  <div className="flex flex-wrap gap-2">
+                    {taggedArtists.map((artist) => (
+                      <Link
+                        key={artist.id}
+                        href={`/profile/${artist.username}`}
+                        className="flex items-center gap-2 bg-surface-2 rounded-full pl-1 pr-3 py-1 tap-highlight-none hover:bg-surface-3 transition-colors"
+                      >
+                        <Avatar src={artist.avatar_url} username={artist.username} size="xs" />
+                        <div>
+                          <span className="text-white text-xs font-medium block leading-tight">{artist.display_name || artist.username}</span>
+                          {artist.instagram_handle && (
+                            <span className="text-text-muted text-[10px] leading-tight">@{artist.instagram_handle}</span>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                    {taggedArtists.length === 0 && isOwnPost && (
+                      <p className="text-text-muted text-xs">태그된 작가 없음</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {/* Selected artists chips */}
+                    {pendingArtistIds.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {pendingArtistIds.map((aid) => {
+                          const a = verifiedArtists.find((v) => v.id === aid)
+                          if (!a) return null
+                          return (
+                            <div key={aid} className="flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-full pl-1 pr-2 py-1">
+                              <Avatar src={a.avatar_url} username={a.username} size="xs" />
+                              <span className="text-primary text-xs font-medium">{a.display_name || a.username}</span>
+                              <button
+                                type="button"
+                                onClick={() => setPendingArtistIds((p) => p.filter((i) => i !== aid))}
+                                className="text-primary/60 hover:text-primary tap-highlight-none"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {/* Search */}
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="작가 검색..."
+                        value={artistSearch}
+                        onChange={(e) => setArtistSearch(e.target.value)}
+                        className="input-base text-sm"
+                        autoFocus
+                      />
+                      {artistSearch.trim() && (
+                        <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-surface border border-border rounded-2xl overflow-hidden shadow-lg max-h-48 overflow-y-auto">
+                          {verifiedArtists
+                            .filter((a) =>
+                              !pendingArtistIds.includes(a.id) &&
+                              ((a.display_name ?? '').toLowerCase().includes(artistSearch.toLowerCase()) ||
+                                a.username.toLowerCase().includes(artistSearch.toLowerCase()))
+                            )
+                            .slice(0, 8)
+                            .map((artist) => (
+                              <button
+                                key={artist.id}
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => {
+                                  setPendingArtistIds((p) => [...p, artist.id])
+                                  setArtistSearch('')
+                                }}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-surface-2 tap-highlight-none"
+                              >
+                                <Avatar src={artist.avatar_url} username={artist.username} size="xs" />
+                                <div className="text-left">
+                                  <p className="text-white text-sm font-medium leading-tight">{artist.display_name || artist.username}</p>
+                                  <p className="text-text-muted text-xs">@{artist.username}</p>
+                                </div>
+                                <UserCheck size={14} className="text-primary ml-auto" />
+                              </button>
+                            ))}
+                          {verifiedArtists.filter((a) =>
+                            !pendingArtistIds.includes(a.id) &&
+                            ((a.display_name ?? '').toLowerCase().includes(artistSearch.toLowerCase()) ||
+                              a.username.toLowerCase().includes(artistSearch.toLowerCase()))
+                          ).length === 0 && (
+                            <p className="text-text-muted text-sm text-center py-4">검색 결과 없음</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Save / Cancel */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          updateArtistTags({ postId: post.id, artistIds: pendingArtistIds }, {
+                            onSuccess: () => { setEditingArtists(false); setArtistSearch('') },
+                          })
+                        }}
+                        disabled={isSavingTags}
+                        className="flex-1 py-2 rounded-xl bg-primary text-white text-sm font-semibold tap-highlight-none disabled:opacity-50"
+                      >
+                        {isSavingTags ? '저장 중...' : '저장'}
+                      </button>
+                      <button
+                        onClick={() => { setEditingArtists(false); setArtistSearch('') }}
+                        className="px-4 py-2 rounded-xl bg-surface-2 text-text-secondary text-sm tap-highlight-none"
+                      >
+                        취소
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

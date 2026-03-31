@@ -591,3 +591,23 @@ export function useDeletePost() {
     },
   })
 }
+
+// ---- Update artist tags -------------------------------------------
+
+export function useUpdateArtistTags() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ postId, artistIds }: { postId: string; artistIds: string[] }) => {
+      const supabase = getSupabaseClient()
+      const { error } = await supabase
+        .from('posts')
+        .update({ tagged_artist_ids: artistIds })
+        .eq('id', postId)
+      if (error) throw error
+      return postId
+    },
+    onSuccess: (postId) => {
+      queryClient.invalidateQueries({ queryKey: postKeys.detail(postId) })
+    },
+  })
+}
