@@ -254,7 +254,7 @@ export function PostCard({ post, showLocation = true, priority = false }: PostCa
             </span>
           ) : null}
           <p className="text-text-muted text-xs">
-            {formatRelativeTime(post.created_at)}
+            {formatRelativeTime(post.last_confirmed_at ?? post.created_at)}
           </p>
         </div>
       </div>

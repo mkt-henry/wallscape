@@ -286,37 +286,45 @@ export default function PostDetailPage({ params }: Props) {
 
             {/* Status report section */}
             <div className="bg-surface-2 rounded-2xl p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-white text-sm font-semibold">현재 상태</h4>
-                {post.last_confirmed_at && (
-                  <span className="text-text-muted text-xs flex items-center gap-1">
-                    <Clock size={12} />
-                    마지막 확인: {formatRelativeTime(post.last_confirmed_at)}
-                  </span>
+              <h4 className="text-white text-sm font-semibold">현재 상태</h4>
+
+              {/* Status verdict + last confirmed date */}
+              <div className="flex items-center justify-between gap-3">
+                {post.gone_count > 0 && post.gone_count >= post.still_there_count ? (
+                  <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">
+                    <XCircle size={15} className="text-red-400" />
+                    <span className="text-red-400 text-sm font-semibold">없어짐</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-xl px-3 py-2">
+                    <CheckCircle2 size={15} className="text-green-400" />
+                    <span className="text-green-400 text-sm font-semibold">아직 있음</span>
+                  </div>
                 )}
+                <span className="text-text-muted text-xs flex items-center gap-1 shrink-0">
+                  <Clock size={12} />
+                  {formatRelativeTime(post.last_confirmed_at ?? post.created_at)}
+                </span>
               </div>
 
-              {/* Status summary */}
+              {/* Report counts */}
               {(post.still_there_count > 0 || post.gone_count > 0) && (
                 <div className="flex items-center gap-4">
                   {post.still_there_count > 0 && (
                     <div className="flex items-center gap-1.5 text-green-400">
-                      <CheckCircle2 size={16} />
-                      <span className="text-sm font-medium">{post.still_there_count}명이 확인</span>
+                      <CheckCircle2 size={13} />
+                      <span className="text-xs">{post.still_there_count}명 확인</span>
                     </div>
                   )}
                   {post.gone_count > 0 && (
                     <div className="flex items-center gap-1.5 text-red-400">
-                      <XCircle size={16} />
-                      <span className="text-sm font-medium">{post.gone_count}명이 없어짐 보고</span>
+                      <XCircle size={13} />
+                      <span className="text-xs">{post.gone_count}명 없어짐 보고</span>
                     </div>
                   )}
                 </div>
               )}
 
-              {post.still_there_count === 0 && post.gone_count === 0 && (
-                <p className="text-text-muted text-sm">아직 상태 보고가 없습니다</p>
-              )}
 
               {/* Report buttons */}
               {user && !isOwnPost && (

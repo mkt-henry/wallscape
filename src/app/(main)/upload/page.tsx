@@ -89,7 +89,7 @@ export default function UploadPage() {
   }
 
   const handlePublish = async () => {
-    if (!selectedImage || !location || !title || !user) return
+    if (!selectedImage || !location || !user) return
 
     setIsUploading(true)
     setUploadError(null)
@@ -180,7 +180,7 @@ export default function UploadPage() {
 
   const canProceedFromImage = !!selectedImage
   const canProceedFromLocation = !!location
-  const canProceedFromInfo = title.trim().length >= 2
+  const canProceedFromInfo = true
 
   // Publishing state
   if (step === 'publishing') {
@@ -339,7 +339,7 @@ export default function UploadPage() {
             {/* Title */}
             <div>
               <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
-                제목 *
+                제목
               </label>
               <Input
                 type="text"
