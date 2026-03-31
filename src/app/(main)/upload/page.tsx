@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, ArrowRight, Check, X, Heart, MessageCircle, Bookmark, MapPin, RefreshCw } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, X, Heart, MessageCircle, Bookmark, MapPin, RefreshCw, UserCheck } from 'lucide-react'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { ImagePicker } from '@/components/upload/ImagePicker'
@@ -17,6 +17,7 @@ import {
   cn,
   ANON_NAMES,
 } from '@/lib/utils'
+import { useVerifiedArtists } from '@/hooks/useArtists'
 import type { Location, UploadFormData } from '@/types'
 
 type UploadStep = 'image' | 'location' | 'info' | 'visibility' | 'publishing'
@@ -41,6 +42,10 @@ export default function UploadPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [tagsInput, setTagsInput] = useState('')
+  const [taggedArtistIds, setTaggedArtistIds] = useState<string[]>([])
+  const [artistSearch, setArtistSearch] = useState('')
+  const [showArtistDropdown, setShowArtistDropdown] = useState(false)
+  const { data: verifiedArtists = [] } = useVerifiedArtists()
   const [showInProfile, setShowInProfile] = useState(true)
   const [showInFeed, setShowInFeed] = useState(true)
   const [showInMap, setShowInMap] = useState(true)
@@ -150,6 +155,7 @@ export default function UploadPage() {
           title: title.trim(),
           description: description.trim() || null,
           tags,
+          tagged_artist_ids: taggedArtistIds,
           lat: location.lat,
           lng: location.lng,
           address: location.address || null,
@@ -385,6 +391,89 @@ export default function UploadPage() {
               <p className="text-text-muted text-xs mt-1">
                 쉼표나 공백으로 구분, # 자동 제거
               </p>
+            </div>
+
+            {/* Artist Tags */}
+            <div>
+              <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
+                작가 태그
+              </label>
+
+              {/* Selected artists */}
+              {taggedArtistIds.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {taggedArtistIds.map((id) => {
+                    const artist = verifiedArtists.find((a) => a.id === id)
+                    if (!artist) return null
+                    return (
+                      <div key={id} className="flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-full pl-2 pr-1 py-1">
+                        <Avatar src={artist.avatar_url} username={artist.username} size="xs" />
+                        <span className="text-primary text-xs font-medium">{artist.display_name || artist.username}</span>
+                        <button
+                          type="button"
+                          onClick={() => setTaggedArtistIds((prev) => prev.filter((i) => i !== id))}
+                          className="text-primary/60 hover:text-primary tap-highlight-none p-0.5"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Search input */}
+              <div className="relative">
+                <Input
+                  type="text"
+                  placeholder="작가 이름으로 검색..."
+                  value={artistSearch}
+                  onChange={(e) => { setArtistSearch(e.target.value); setShowArtistDropdown(true) }}
+                  onFocus={() => setShowArtistDropdown(true)}
+                />
+                {showArtistDropdown && artistSearch.trim() && (
+                  <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-surface border border-border rounded-2xl overflow-hidden shadow-lg max-h-48 overflow-y-auto">
+                    {verifiedArtists
+                      .filter((a) =>
+                        !taggedArtistIds.includes(a.id) &&
+                        (
+                          (a.display_name ?? '').toLowerCase().includes(artistSearch.toLowerCase()) ||
+                          a.username.toLowerCase().includes(artistSearch.toLowerCase())
+                        )
+                      )
+                      .slice(0, 8)
+                      .map((artist) => (
+                        <button
+                          key={artist.id}
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            setTaggedArtistIds((prev) => [...prev, artist.id])
+                            setArtistSearch('')
+                            setShowArtistDropdown(false)
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-surface-2 tap-highlight-none"
+                        >
+                          <Avatar src={artist.avatar_url} username={artist.username} size="xs" />
+                          <div className="text-left">
+                            <p className="text-white text-sm font-medium leading-tight">{artist.display_name || artist.username}</p>
+                            <p className="text-text-muted text-xs">@{artist.username}</p>
+                          </div>
+                          <UserCheck size={14} className="text-primary ml-auto" />
+                        </button>
+                      ))}
+                    {verifiedArtists.filter((a) =>
+                      !taggedArtistIds.includes(a.id) &&
+                      (
+                        (a.display_name ?? '').toLowerCase().includes(artistSearch.toLowerCase()) ||
+                        a.username.toLowerCase().includes(artistSearch.toLowerCase())
+                      )
+                    ).length === 0 && (
+                      <p className="text-text-muted text-sm text-center py-4">검색 결과 없음</p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
           </div>

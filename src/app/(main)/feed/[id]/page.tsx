@@ -25,6 +25,7 @@ import {
   Clock,
 } from 'lucide-react'
 import { usePost, useLikePost, useBookmarkPost, useComments, useAddComment, useArchivePost, useDeletePost, useReportStatus, useMyStatusReport } from '@/hooks/usePosts'
+import { useProfiles } from '@/hooks/useArtists'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Avatar } from '@/components/ui/Avatar'
 import { ActionSheet } from '@/components/ui/BottomSheet'
@@ -55,6 +56,7 @@ export default function PostDetailPage({ params }: Props) {
   const { mutate: deletePost } = useDeletePost()
   const { mutate: reportStatus, isPending: isReporting } = useReportStatus()
   const { data: myReport } = useMyStatusReport(id)
+  const { data: taggedArtists = [] } = useProfiles(post?.tagged_artist_ids ?? [])
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault()
@@ -251,6 +253,25 @@ export default function PostDetailPage({ params }: Props) {
                     #{tag}
                   </Link>
                 ))}
+              </div>
+            )}
+
+            {/* Tagged Artists */}
+            {taggedArtists.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-text-secondary text-xs font-medium uppercase tracking-wide">작가</p>
+                <div className="flex flex-wrap gap-2">
+                  {taggedArtists.map((artist) => (
+                    <Link
+                      key={artist.id}
+                      href={`/profile/${artist.username}`}
+                      className="flex items-center gap-2 bg-surface-2 rounded-full pl-1 pr-3 py-1 tap-highlight-none hover:bg-surface-3 transition-colors"
+                    >
+                      <Avatar src={artist.avatar_url} username={artist.username} size="xs" />
+                      <span className="text-white text-xs font-medium">{artist.display_name || artist.username}</span>
+                    </Link>
+                  ))}
+                </div>
               </div>
             )}
 

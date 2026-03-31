@@ -108,6 +108,7 @@ export interface Post {
   gone_count: number
   last_confirmed_at: string | null
   last_report_status: 'still_there' | 'gone' | null
+  tagged_artist_ids: string[]
   status: PostStatus
   archived_at: string | null
   created_at: string
