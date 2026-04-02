@@ -8,12 +8,11 @@ import {
 } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/useAuthStore'
-import type { GraffitiNewsWithUser } from '@/types'
+import type { GraffitiNews } from '@/types'
 
 const NEWS_SELECT = `
   id, user_id, title, content, thumbnail_url,
-  view_count, is_pinned, created_at, updated_at,
-  profiles(id, username, display_name, avatar_url)
+  view_count, is_pinned, created_at, updated_at
 `
 
 export const newsKeys = {
@@ -37,7 +36,7 @@ export function useGraffitiNewsList() {
 
       if (error) throw error
       return {
-        data: (data ?? []) as unknown as GraffitiNewsWithUser[],
+        data: (data ?? []) as unknown as GraffitiNews[],
         nextCursor: data && data.length === limit ? pageParam + limit : null,
       }
     },
@@ -61,7 +60,7 @@ export function useGraffitiNews(id: string) {
       // 조회수 증가 (fire-and-forget)
       void supabase.rpc('increment_news_view', { news_id: id })
 
-      return data as unknown as GraffitiNewsWithUser
+      return data as unknown as GraffitiNews
     },
     enabled: !!id,
   })
@@ -81,7 +80,7 @@ export function useCreateGraffitiNews() {
         .select(NEWS_SELECT)
         .single()
       if (error) throw error
-      return data as unknown as GraffitiNewsWithUser
+      return data as unknown as GraffitiNews
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: newsKeys.all })
