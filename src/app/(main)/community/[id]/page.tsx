@@ -141,6 +141,14 @@ export default function CommunityPostPage({ params }: Props) {
           {post.content}
         </div>
 
+        {/* Image */}
+        {post.image_url && (
+          <div className="rounded-xl overflow-hidden bg-surface-2 -mx-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={post.image_url} alt={post.title} className="w-full object-cover max-h-96" />
+          </div>
+        )}
+
         {/* Divider */}
         <div className="h-px bg-border" />
 

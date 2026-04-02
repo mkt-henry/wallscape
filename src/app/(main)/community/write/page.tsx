@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ImagePlus, X } from 'lucide-react'
 import { useCreateBoardPost } from '@/hooks/useCommunity'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { cn } from '@/lib/utils'
+import { resizeImage, generateStoragePath, cn } from '@/lib/utils'
 import type { BoardCategory } from '@/types'
 
 const CATEGORIES: { key: BoardCategory; label: string }[] = [
@@ -18,25 +18,70 @@ const CATEGORIES: { key: BoardCategory; label: string }[] = [
 
 export default function CommunityWritePage() {
   const router = useRouter()
-  const { user } = useAuthStore()
+  const { user, session } = useAuthStore()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [category, setCategory] = useState<BoardCategory>('general')
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { mutate: createPost, isPending } = useCreateBoardPost()
 
-  const canSubmit = title.trim().length > 0 && content.trim().length > 0 && !isPending
+  const canSubmit = title.trim().length > 0 && content.trim().length > 0 && !isPending && !isUploading
 
-  const handleSubmit = () => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+  }
+
+  const handleRemoveImage = () => {
+    setImageFile(null)
+    if (imagePreview) URL.revokeObjectURL(imagePreview)
+    setImagePreview(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile || !user || !session?.access_token) return null
+    const resized = await resizeImage(imageFile, 1200, 1200, 0.85)
+    const path = generateStoragePath(user.id, imageFile.name)
+    const storageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/post-images/${path}`
+    const res = await fetch(storageUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        'Content-Type': 'image/jpeg',
+        'x-upsert': 'false',
+      },
+      body: resized,
+    })
+    if (!res.ok) throw new Error('이미지 업로드 실패')
+    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/post-images/${path}`
+  }
+
+  const handleSubmit = async () => {
     if (!canSubmit) return
-    createPost(
-      { title: title.trim(), content: content.trim(), category },
-      {
-        onSuccess: (post) => {
-          router.replace(`/community/${post.id}`)
-        },
-      }
-    )
+    setIsUploading(true)
+    try {
+      const image_url = await uploadImage()
+      createPost(
+        { title: title.trim(), content: content.trim(), category, image_url },
+        {
+          onSuccess: (post) => {
+            router.replace(`/community/${post.id}`)
+          },
+        }
+      )
+    } catch {
+      alert('이미지 업로드 중 오류가 발생했습니다.')
+    } finally {
+      setIsUploading(false)
+    }
   }
 
   if (!user) {
@@ -74,7 +119,7 @@ export default function CommunityWritePage() {
                 : 'bg-surface-2 text-text-muted'
             )}
           >
-            {isPending ? '게시 중...' : '게시'}
+            {isUploading || isPending ? '게시 중...' : '게시'}
           </button>
         </div>
       </div>
@@ -123,6 +168,37 @@ export default function CommunityWritePage() {
             rows={12}
             className="w-full bg-transparent text-white text-sm leading-relaxed placeholder:text-text-muted outline-none resize-none"
           />
+        </div>
+
+        {/* Image */}
+        <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handleImageChange}
+          />
+          {imagePreview ? (
+            <div className="relative rounded-xl overflow-hidden bg-surface-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={imagePreview} alt="미리보기" className="w-full max-h-64 object-cover" />
+              <button
+                onClick={handleRemoveImage}
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center tap-highlight-none"
+              >
+                <X size={14} className="text-white" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-border text-text-secondary hover:border-primary hover:text-primary transition-colors tap-highlight-none"
+            >
+              <ImagePlus size={20} />
+              <span className="text-sm">이미지 첨부 (선택)</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

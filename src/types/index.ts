@@ -53,6 +53,7 @@ export interface BoardPost {
   title: string
   content: string
   category: BoardCategory
+  image_url: string | null
   like_count: number
   comment_count: number
   view_count: number

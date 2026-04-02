@@ -108,6 +108,14 @@ export default function GraffitiNewsDetailPage({ params }: Props) {
           </span>
         </div>
 
+        {/* Thumbnail */}
+        {news.thumbnail_url && (
+          <div className="rounded-xl overflow-hidden bg-surface-2 -mx-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={news.thumbnail_url} alt={news.title} className="w-full object-cover max-h-72" />
+          </div>
+        )}
+
         {/* Body */}
         <div className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap break-words">
           {news.content}

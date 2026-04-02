@@ -92,29 +92,35 @@ export default function GraffitiNewsPage() {
               <Link
                 key={news.id}
                 href={`/community/news/${news.id}`}
-                className="block p-4 bg-surface rounded-2xl tap-highlight-none hover:bg-surface-2 transition-colors"
+                className="block bg-surface rounded-2xl tap-highlight-none hover:bg-surface-2 transition-colors overflow-hidden"
               >
-                {news.is_pinned && (
-                  <div className="flex items-center gap-1 text-primary text-xs font-semibold mb-2">
-                    <Pin size={12} />
-                    고정됨
-                  </div>
+                {news.thumbnail_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={news.thumbnail_url} alt={news.title} className="w-full h-40 object-cover" />
                 )}
+                <div className="p-4">
+                  {news.is_pinned && (
+                    <div className="flex items-center gap-1 text-primary text-xs font-semibold mb-2">
+                      <Pin size={12} />
+                      고정됨
+                    </div>
+                  )}
 
-                <h3 className="text-white font-semibold text-sm leading-snug line-clamp-2 mb-2">
-                  {news.title}
-                </h3>
+                  <h3 className="text-white font-semibold text-sm leading-snug line-clamp-2 mb-2">
+                    {news.title}
+                  </h3>
 
-                <p className="text-text-secondary text-sm line-clamp-2 mb-3 leading-relaxed">
-                  {news.content}
-                </p>
+                  <p className="text-text-secondary text-sm line-clamp-2 mb-3 leading-relaxed">
+                    {news.content}
+                  </p>
 
-                <div className="flex items-center justify-between text-text-muted text-xs">
-                  <span>{formatRelativeTime(news.created_at)}</span>
-                  <span className="flex items-center gap-1">
-                    <Eye size={12} />
-                    {news.view_count}
-                  </span>
+                  <div className="flex items-center justify-between text-text-muted text-xs">
+                    <span>{formatRelativeTime(news.created_at)}</span>
+                    <span className="flex items-center gap-1">
+                      <Eye size={12} />
+                      {news.view_count}
+                    </span>
+                  </div>
                 </div>
               </Link>
             ))}

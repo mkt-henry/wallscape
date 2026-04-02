@@ -11,7 +11,7 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import type { BoardPostWithUser, BoardCommentWithUser, BoardCategory } from '@/types'
 
 const BOARD_POST_SELECT = `
-  id, user_id, title, content, category,
+  id, user_id, title, content, category, image_url,
   like_count, comment_count, view_count, is_pinned,
   created_at, updated_at,
   profiles(id, username, display_name, avatar_url)
@@ -92,7 +92,7 @@ export function useCreateBoardPost() {
   const { user } = useAuthStore()
 
   return useMutation({
-    mutationFn: async (input: { title: string; content: string; category: BoardCategory }) => {
+    mutationFn: async (input: { title: string; content: string; category: BoardCategory; image_url?: string | null }) => {
       if (!user) throw new Error('로그인이 필요합니다')
       const supabase = getSupabaseClient()
       const { data, error } = await supabase
