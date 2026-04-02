@@ -152,7 +152,7 @@ export default function UploadPage() {
         .insert({
           user_id: user.id,
           image_url: imageUrl,
-          title: title.trim(),
+          title: title.trim() || null,
           description: description.trim() || null,
           tags,
           tagged_artist_ids: taggedArtistIds,
