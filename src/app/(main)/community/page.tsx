@@ -51,6 +51,136 @@ function NewsSkeleton() {
   )
 }
 
+function AllList() {
+  const { data: newsData, isLoading: isNewsLoading } = useGraffitiNewsList()
+  const newsList = newsData?.pages[0]?.data ?? []
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading: isPostsLoading } =
+    useBoardPosts(undefined)
+  const posts = data?.pages.flatMap((page) => page.data) ?? []
+
+  const sentinelRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (!node) return
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage()
+          }
+        },
+        { threshold: 0.1 }
+      )
+      observer.observe(node)
+      return () => observer.disconnect()
+    },
+    [hasNextPage, isFetchingNextPage, fetchNextPage]
+  )
+
+  if (isNewsLoading || isPostsLoading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => <PostSkeleton key={i} />)}
+      </div>
+    )
+  }
+
+  const hasContent = newsList.length > 0 || posts.length > 0
+
+  if (!hasContent) {
+    return (
+      <div className="py-20 flex flex-col items-center gap-4">
+        <div className="w-16 h-16 rounded-2xl bg-surface-2 flex items-center justify-center">
+          <MessageSquare size={32} className="text-text-muted" />
+        </div>
+        <div className="text-center">
+          <p className="text-white font-semibold mb-1">아직 게시글이 없어요</p>
+          <p className="text-text-secondary text-sm">첫 번째 글을 작성해보세요!</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className="space-y-3">
+        {newsList.map((news) => (
+          <Link
+            key={`news-${news.id}`}
+            href={`/community/news/${news.id}`}
+            className="block p-4 bg-surface rounded-2xl tap-highlight-none hover:bg-surface-2 transition-colors"
+          >
+            {news.is_pinned && (
+              <div className="flex items-center gap-1 text-primary text-xs font-semibold mb-2">
+                <Pin size={12} />
+                고정됨
+              </div>
+            )}
+            <div className="flex items-start gap-2 mb-2">
+              <span className="shrink-0 px-2 py-0.5 rounded-md bg-primary/20 text-primary text-xs font-medium flex items-center gap-1">
+                <Newspaper size={10} />
+                뉴스
+              </span>
+              <h3 className="text-white font-semibold text-sm leading-snug line-clamp-2 flex-1">
+                {news.title}
+              </h3>
+            </div>
+            <p className="text-text-secondary text-sm line-clamp-2 mb-3 leading-relaxed">
+              {news.content}
+            </p>
+            <div className="flex items-center justify-between text-text-muted text-xs">
+              <span>{formatRelativeTime(news.created_at)}</span>
+              <span className="flex items-center gap-1"><Eye size={12} />{news.view_count}</span>
+            </div>
+          </Link>
+        ))}
+        {posts.map((post) => (
+          <Link
+            key={`post-${post.id}`}
+            href={`/community/${post.id}`}
+            className="block p-4 bg-surface rounded-2xl tap-highlight-none hover:bg-surface-2 transition-colors"
+          >
+            {post.is_pinned && (
+              <div className="flex items-center gap-1 text-primary text-xs font-semibold mb-2">
+                <Pin size={12} />
+                고정됨
+              </div>
+            )}
+            <div className="flex items-start gap-2 mb-2">
+              <span className="shrink-0 px-2 py-0.5 rounded-md bg-surface-2 text-text-secondary text-xs font-medium">
+                {CATEGORY_LABELS[post.category] || post.category}
+              </span>
+              <h3 className="text-white font-semibold text-sm leading-snug line-clamp-2 flex-1">
+                {post.title}
+              </h3>
+            </div>
+            <p className="text-text-secondary text-sm line-clamp-2 mb-3 leading-relaxed">
+              {post.content}
+            </p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Avatar src={post.profiles.avatar_url} username={post.profiles.username} size="xs" />
+                <span className="text-text-secondary text-xs">
+                  {post.profiles.display_name || post.profiles.username}
+                </span>
+                <span className="text-text-muted text-xs">{formatRelativeTime(post.created_at)}</span>
+              </div>
+              <div className="flex items-center gap-3 text-text-muted text-xs">
+                <span className="flex items-center gap-1"><Heart size={12} />{post.like_count}</span>
+                <span className="flex items-center gap-1"><MessageSquare size={12} />{post.comment_count}</span>
+                <span className="flex items-center gap-1"><Eye size={12} />{post.view_count}</span>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+      {hasNextPage && <div ref={sentinelRef} className="h-4 mt-4" />}
+      {isFetchingNextPage && (
+        <div className="flex justify-center py-6"><div className="loader" /></div>
+      )}
+    </>
+  )
+}
+
 function BoardList({ category }: { category?: BoardCategory }) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useBoardPosts(category)
@@ -269,6 +399,8 @@ export default function CommunityPage() {
       <div className="flex-1 max-w-3xl mx-auto w-full px-4 pt-4 pb-6">
         {isNewsTab ? (
           <NewsList />
+        ) : activeTab === 'all' ? (
+          <AllList />
         ) : (
           <BoardList category={boardCategory} />
         )}
