@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, MessageSquare, Eye, Heart, Pin } from 'lucide-react'
+import { Plus, MessageSquare, Eye, Heart, Pin, Newspaper } from 'lucide-react'
 import { useBoardPosts, useCreateBoardPost } from '@/hooks/useCommunity'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Avatar } from '@/components/ui/Avatar'
@@ -81,6 +81,13 @@ export default function CommunityPage() {
         <div className="max-w-3xl mx-auto px-4">
           <div className="flex items-center justify-between h-14">
             <h1 className="text-xl font-black text-white">커뮤니티</h1>
+            <Link
+              href="/community/news"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-2 text-text-secondary hover:bg-surface-3 transition-colors text-sm font-medium tap-highlight-none"
+            >
+              <Newspaper size={15} />
+              뉴스
+            </Link>
           </div>
 
           {/* Category tabs */}

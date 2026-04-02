@@ -78,6 +78,24 @@ export interface BoardCommentWithUser extends BoardComment {
   profiles: Profile
 }
 
+// ---- Graffiti News -----------------------------------------
+
+export interface GraffitiNews {
+  id: string
+  user_id: string
+  title: string
+  content: string
+  thumbnail_url: string | null
+  view_count: number
+  is_pinned: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface GraffitiNewsWithUser extends GraffitiNews {
+  profiles: Profile
+}
+
 // ---- Post --------------------------------------------------
 
 export type PostVisibility = 'public' | 'followers' | 'private'
