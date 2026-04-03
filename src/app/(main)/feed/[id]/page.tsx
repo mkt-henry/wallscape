@@ -265,11 +265,11 @@ export default function PostDetailPage({ params }: Props) {
             )}
 
             {/* Tagged Artists */}
-            {(taggedArtists.length > 0 || isOwnPost) && (
+            {(taggedArtists.length > 0 || !!user) && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="text-text-secondary text-xs font-medium uppercase tracking-wide">작가</p>
-                  {isOwnPost && !editingArtists && (
+                  {!!user && !editingArtists && (
                     <button
                       onClick={() => {
                         setPendingArtistIds(post.tagged_artist_ids ?? [])
@@ -300,7 +300,7 @@ export default function PostDetailPage({ params }: Props) {
                         </div>
                       </Link>
                     ))}
-                    {taggedArtists.length === 0 && isOwnPost && (
+                    {taggedArtists.length === 0 && !!user && (
                       <p className="text-text-muted text-xs">태그된 작가 없음</p>
                     )}
                   </div>

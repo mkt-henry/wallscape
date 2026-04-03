@@ -598,12 +598,15 @@ export function useUpdateArtistTags() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ postId, artistIds }: { postId: string; artistIds: string[] }) => {
-      const supabase = getSupabaseClient()
-      const { error } = await supabase
-        .from('posts')
-        .update({ tagged_artist_ids: artistIds })
-        .eq('id', postId)
-      if (error) throw error
+      const res = await fetch(`/api/posts/${postId}/artist-tags`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ artistIds }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || '저장에 실패했습니다.')
+      }
       return postId
     },
     onSuccess: (postId) => {
