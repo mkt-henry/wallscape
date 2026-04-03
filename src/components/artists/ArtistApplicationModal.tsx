@@ -85,7 +85,7 @@ export function ArtistApplicationModal({ onClose }: ArtistApplicationModalProps)
 
         {step === 'success' ? (
           /* ── Success ── */
-          <div className="px-6 py-10 flex flex-col items-center gap-4 text-center pb-[calc(env(safe-area-inset-bottom)+2.5rem)]">
+          <div className="px-6 py-10 flex flex-col items-center gap-4 text-center pb-[calc(env(safe-area-inset-bottom)+var(--bottom-nav-height)+2.5rem)]">
             <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center">
               <span className="text-3xl">🎨</span>
             </div>
