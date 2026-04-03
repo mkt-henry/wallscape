@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Navigation } from 'lucide-react'
@@ -8,6 +8,7 @@ import { useMapStore } from '@/stores/useMapStore'
 import { useLocation } from '@/hooks/useLocation'
 import { useNearbyPosts } from '@/hooks/useNearbyPosts'
 import { MarkerBottomSheet } from '@/components/map/MarkerBottomSheet'
+import { NearbyPostsModal } from '@/components/map/NearbyPostsModal'
 import { loadKakaoScript } from '@/lib/kakao'
 
 // Load Kakao map only on client
@@ -33,11 +34,12 @@ if (typeof window !== 'undefined') {
 
 function MapContent() {
   const searchParams = useSearchParams()
-  const { center, zoom, setCenter, isBottomSheetOpen, closePostSheet, visiblePostCount } = useMapStore()
+  const { center, zoom, setCenter, isBottomSheetOpen, closePostSheet, visiblePostCount, nearbyPosts } = useMapStore()
   const { location, requestLocation } = useLocation()
+  const [isNearbyModalOpen, setIsNearbyModalOpen] = useState(false)
 
   // Fetch nearby posts immediately — no need to wait for Kakao SDK
-  const { data: nearbyPosts } = useNearbyPosts(center.lat, center.lng, zoom)
+  const { data: prefetchedPosts } = useNearbyPosts(center.lat, center.lng, zoom)
 
   // Handle URL params
   useEffect(() => {
@@ -60,7 +62,7 @@ function MapContent() {
     <div className="relative w-full h-dvh bg-background overflow-hidden">
       {/* Map fills entire screen */}
       <div className="absolute inset-0">
-        <KakaoMap prefetchedPosts={nearbyPosts} />
+        <KakaoMap prefetchedPosts={prefetchedPosts} />
       </div>
 
       {/* Map controls */}
@@ -80,11 +82,22 @@ function MapContent() {
 
       {/* Post count overlay */}
       <div className="absolute left-4 bottom-[calc(80px+env(safe-area-inset-bottom))] md:bottom-6 z-10">
-        <div className="glass rounded-2xl px-4 py-2 shadow-card">
+        <button
+          onClick={() => nearbyPosts.length > 0 && setIsNearbyModalOpen(true)}
+          className="glass rounded-2xl px-4 py-2 shadow-card tap-highlight-none active:scale-95 transition-transform text-left"
+        >
           <p className="text-white text-xs font-semibold">이 지역 게시물</p>
           <p className="text-primary text-lg font-black leading-tight">{visiblePostCount}</p>
-        </div>
+        </button>
       </div>
+
+      {/* Nearby posts modal */}
+      {isNearbyModalOpen && (
+        <NearbyPostsModal
+          posts={nearbyPosts}
+          onClose={() => setIsNearbyModalOpen(false)}
+        />
+      )}
 
       {/* Bottom sheet */}
       {isBottomSheetOpen && (
