@@ -145,13 +145,6 @@ export default function SettingsPage() {
           action: () => setShowLogoutSheet(true),
           danger: true,
         },
-        {
-          icon: <Trash2 size={20} />,
-          label: '계정 삭제',
-          description: '계정과 모든 데이터가 영구 삭제됩니다',
-          action: () => setShowDeleteSheet(true),
-          danger: true,
-        },
       ],
     },
   ]
@@ -186,7 +179,7 @@ export default function SettingsPage() {
       )}
 
       {/* Settings sections */}
-      <div className="space-y-6 px-4 pb-safe-bottom pb-8">
+      <div className="space-y-6 px-4 pb-[calc(env(safe-area-inset-bottom)+var(--bottom-nav-height)+2rem)]">
         {sections.map((section) => (
           <div key={section.title}>
             <h3 className="text-text-muted text-xs font-semibold uppercase tracking-widest mb-2 px-1">
