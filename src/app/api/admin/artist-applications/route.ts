@@ -22,7 +22,7 @@ export async function GET() {
   const adminClient = createAdminClient()
   const { data, error } = await adminClient
     .from('artist_applications')
-    .select('*, profiles(username, display_name, avatar_url, email:id)')
+    .select('*, profiles(username, display_name, avatar_url)')
     .order('created_at', { ascending: false })
 
   if (error) {
