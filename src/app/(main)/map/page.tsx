@@ -37,7 +37,7 @@ function MapContent() {
   const { location, requestLocation } = useLocation()
 
   // Fetch nearby posts immediately — no need to wait for Kakao SDK
-  useNearbyPosts(center.lat, center.lng, zoom)
+  const { data: nearbyPosts } = useNearbyPosts(center.lat, center.lng, zoom)
 
   // Handle URL params
   useEffect(() => {
