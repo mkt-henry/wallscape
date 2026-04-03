@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { Search, CheckCircle2, Instagram } from 'lucide-react'
+import { Search, CheckCircle2, Instagram, PenLine } from 'lucide-react'
 import { useState } from 'react'
 import { useVerifiedArtists } from '@/hooks/useArtists'
 import { Avatar } from '@/components/ui/Avatar'
 import { formatNumber } from '@/lib/utils'
+import { ArtistApplicationModal } from '@/components/artists/ArtistApplicationModal'
 
 function ArtistSkeleton() {
   return (
@@ -21,6 +22,7 @@ function ArtistSkeleton() {
 
 export default function ArtistsPage() {
   const [search, setSearch] = useState('')
+  const [showApplicationModal, setShowApplicationModal] = useState(false)
   const { data: artists = [], isLoading } = useVerifiedArtists()
 
   const filtered = search.trim()
@@ -38,6 +40,13 @@ export default function ArtistsPage() {
         <div className="max-w-3xl mx-auto px-4">
           <div className="flex items-center justify-between h-14">
             <h1 className="text-xl font-black text-white">작가</h1>
+            <button
+              onClick={() => setShowApplicationModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-2 text-text-secondary text-xs font-medium tap-highlight-none hover:bg-surface-3 transition-colors"
+            >
+              <PenLine size={13} />
+              작가 등록
+            </button>
           </div>
 
           {/* Search */}
@@ -123,6 +132,10 @@ export default function ArtistsPage() {
           </div>
         )}
       </div>
+
+      {showApplicationModal && (
+        <ArtistApplicationModal onClose={() => setShowApplicationModal(false)} />
+      )}
     </div>
   )
 }

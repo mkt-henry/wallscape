@@ -8,14 +8,16 @@ import {
   UserPlus,
   Users,
   UserCheck,
+  Brush,
 } from 'lucide-react'
 import FeedbackPanel from './FeedbackPanel'
 import AccountsPanel from './AccountsPanel'
 import UsersPanel from './UsersPanel'
 import ReactivationPanel from './ReactivationPanel'
+import ArtistApplicationsPanel from './ArtistApplicationsPanel'
 import { Logo } from '@/components/ui/Logo'
 
-type AdminTab = 'feedback' | 'accounts' | 'users' | 'reactivation'
+type AdminTab = 'feedback' | 'accounts' | 'users' | 'reactivation' | 'artists'
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState<AdminTab>('feedback')
@@ -88,6 +90,17 @@ export default function AdminDashboard() {
                 <UserCheck size={13} />
                 <span className="hidden xs:inline">재활성화</span>
               </button>
+              <button
+                onClick={() => setTab('artists')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all tap-highlight-none ${
+                  tab === 'artists'
+                    ? 'bg-primary text-white'
+                    : 'text-text-secondary hover:text-white'
+                }`}
+              >
+                <Brush size={13} />
+                <span className="hidden xs:inline">작가신청</span>
+              </button>
             </div>
           </div>
         </div>
@@ -97,6 +110,7 @@ export default function AdminDashboard() {
       {tab === 'accounts' && <AccountsPanel />}
       {tab === 'users' && <UsersPanel />}
       {tab === 'reactivation' && <ReactivationPanel />}
+      {tab === 'artists' && <ArtistApplicationsPanel />}
     </div>
   )
 }
