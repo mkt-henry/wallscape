@@ -14,6 +14,8 @@ interface ArtistApplication {
   instagram_handle: string | null
   website: string | null
   note: string | null
+  registration_type: 'self' | 'other'
+  target_username: string | null
   status: 'pending' | 'approved' | 'rejected'
   admin_note: string | null
   processed_at: string | null
@@ -138,6 +140,11 @@ export default function ArtistApplicationsPanel() {
                   }`}>
                     {app.status === 'pending' ? '대기' : app.status === 'approved' ? '승인' : '거절'}
                   </span>
+                  <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                    app.registration_type === 'self' ? 'bg-blue-500/20 text-blue-400' : 'bg-surface-3 text-text-muted'
+                  }`}>
+                    {app.registration_type === 'self' ? '본인' : '타인'}
+                  </span>
                 </div>
                 <p className="text-text-secondary text-sm">@{app.profiles?.username}</p>
                 <p className="text-text-muted text-xs mt-0.5">{formatRelativeTime(app.created_at)}</p>
@@ -164,6 +171,14 @@ export default function ArtistApplicationsPanel() {
                   <a href={app.website} target="_blank" rel="noopener noreferrer" className="text-primary underline truncate">
                     {app.website}
                   </a>
+                </div>
+              )}
+              {app.registration_type === 'other' && (
+                <div className="p-3 bg-surface-2 rounded-xl">
+                  <p className="text-text-muted text-xs mb-0.5">대상 작가 앱 아이디</p>
+                  <p className="text-white/80 text-sm">
+                    {app.target_username ? `@${app.target_username}` : '미입력 (수동 처리 필요)'}
+                  </p>
                 </div>
               )}
               {app.note && (

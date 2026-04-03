@@ -65,7 +65,18 @@ export async function PATCH(request: NextRequest) {
   }
 
   if (action === 'approve') {
-    // profiles.is_verified = true 설정
+    // 대상 프로필 결정: 다른 작가 등록이고 target_username이 있으면 해당 유저, 아니면 신청자
+    let targetProfileId = app.user_id
+
+    if (app.registration_type === 'other' && app.target_username) {
+      const { data: targetProfile } = await adminClient
+        .from('profiles')
+        .select('id')
+        .eq('username', app.target_username)
+        .maybeSingle()
+      if (targetProfile) targetProfileId = targetProfile.id
+    }
+
     const { error: profileError } = await adminClient
       .from('profiles')
       .update({
@@ -75,7 +86,7 @@ export async function PATCH(request: NextRequest) {
         instagram_handle: app.instagram_handle ?? undefined,
         website: app.website ?? undefined,
       })
-      .eq('id', app.user_id)
+      .eq('id', targetProfileId)
 
     if (profileError) {
       console.error('Profile update error:', profileError)

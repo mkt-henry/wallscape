@@ -10,14 +10,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 })
   }
 
-  let body: { artist_name?: string; bio?: string; instagram_handle?: string; website?: string; note?: string }
+  let body: { artist_name?: string; bio?: string; instagram_handle?: string; website?: string; note?: string; registration_type?: string; target_username?: string }
   try {
     body = await request.json()
   } catch {
     return NextResponse.json({ error: '잘못된 요청입니다.' }, { status: 400 })
   }
 
-  const { artist_name, bio, instagram_handle, website, note } = body
+  const { artist_name, bio, instagram_handle, website, note, registration_type, target_username } = body
   if (!artist_name?.trim()) {
     return NextResponse.json({ error: '작가 이름을 입력해주세요.' }, { status: 400 })
   }
@@ -43,6 +43,8 @@ export async function POST(request: NextRequest) {
       instagram_handle: instagram_handle?.trim() || null,
       website: website?.trim() || null,
       note: note?.trim() || null,
+      registration_type: registration_type === 'other' ? 'other' : 'self',
+      target_username: registration_type === 'other' ? (target_username?.trim() || null) : null,
     })
 
   if (insertError) {
