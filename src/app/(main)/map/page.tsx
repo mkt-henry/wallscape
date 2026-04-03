@@ -3,7 +3,7 @@
 import { Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { Search, Layers, Navigation } from 'lucide-react'
+import { Navigation } from 'lucide-react'
 import { useMapStore } from '@/stores/useMapStore'
 import { useLocation } from '@/hooks/useLocation'
 import { useNearbyPosts } from '@/hooks/useNearbyPosts'
@@ -63,27 +63,8 @@ function MapContent() {
         <KakaoMap prefetchedPosts={nearbyPosts} />
       </div>
 
-      {/* Top search bar overlay */}
-      <div className="absolute top-0 left-0 right-0 z-10 p-4 pt-safe-top">
-        <div className="glass rounded-2xl flex items-center gap-3 px-4 py-3 shadow-card">
-          <Search size={18} className="text-text-secondary shrink-0" />
-          <input
-            type="text"
-            placeholder="장소, 주소 검색..."
-            className="flex-1 bg-transparent text-white text-sm placeholder:text-text-muted outline-none"
-            readOnly
-            onClick={() => {/* open search */}}
-          />
-        </div>
-      </div>
-
       {/* Map controls */}
       <div className="absolute right-4 bottom-[calc(80px+env(safe-area-inset-bottom))] md:bottom-6 z-10 flex flex-col gap-2">
-        {/* Layer toggle */}
-        <button className="w-12 h-12 glass rounded-2xl flex items-center justify-center tap-highlight-none shadow-card">
-          <Layers size={20} className="text-white" />
-        </button>
-
         {/* My location */}
         <button
           onClick={handleMyLocation}
