@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Instagram, Globe, Brush, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -21,6 +21,11 @@ export function ArtistApplicationModal({ onClose }: ArtistApplicationModalProps)
   const [instagram, setInstagram] = useState('')
   const [website, setWebsite] = useState('')
   const [note, setNote] = useState('')
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
 
   const handleSubmit = async () => {
     if (!artistName.trim()) {
@@ -98,7 +103,7 @@ export function ArtistApplicationModal({ onClose }: ArtistApplicationModalProps)
           </div>
         ) : (
           /* ── Form ── */
-          <div className="px-4 py-4 space-y-4 max-h-[70dvh] overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+          <div className="px-4 py-4 space-y-4 max-h-[70dvh] overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+var(--bottom-nav-height)+1.5rem)]">
             {/* Notice */}
             <div className="flex items-start gap-2 p-3 bg-primary/10 rounded-2xl border border-primary/20">
               <ChevronRight size={14} className="text-primary mt-0.5 shrink-0" />
