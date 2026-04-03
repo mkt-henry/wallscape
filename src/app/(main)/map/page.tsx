@@ -86,7 +86,7 @@ function MapContent() {
           onClick={() => visiblePosts.length > 0 && setIsNearbyModalOpen(true)}
           className="glass rounded-2xl px-4 py-2 shadow-card tap-highlight-none active:scale-95 transition-transform text-left"
         >
-          <p className="text-white text-xs font-semibold">이 지역 게시물</p>
+          <p className="text-white text-xs font-semibold">이 지역 작품</p>
           <p className="text-primary text-lg font-black leading-tight">{visiblePostCount}</p>
         </button>
       </div>

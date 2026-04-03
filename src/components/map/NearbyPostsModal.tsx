@@ -53,7 +53,7 @@ export function NearbyPostsModal({ posts, onClose }: NearbyPostsModalProps) {
 
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-2">
-          <p className="text-white font-semibold text-sm">이 지역 게시물</p>
+          <p className="text-white font-semibold text-sm">이 지역 작품</p>
           <div className="flex items-center gap-3">
             <span className="text-text-secondary text-sm">{currentIndex + 1} / {posts.length}</span>
             <button onClick={onClose} className="p-1 tap-highlight-none">
@@ -111,7 +111,7 @@ export function NearbyPostsModal({ posts, onClose }: NearbyPostsModalProps) {
         )}
 
         {/* Post info */}
-        <div className="px-4 pt-1 pb-[calc(env(safe-area-inset-bottom)+1rem)] space-y-3">
+        <div className="px-4 pt-1 pb-[calc(env(safe-area-inset-bottom)+var(--bottom-nav-height)+1rem)] space-y-3">
           <div className="flex items-start gap-3">
             <div className="flex-1 min-w-0">
               {post.title && (
