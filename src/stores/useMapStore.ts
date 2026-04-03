@@ -13,6 +13,7 @@ interface MapState {
   selectedPost: PostWithUser | NearbyPost | null
   hoveredPostId: string | null
   nearbyPosts: NearbyPost[]
+  visiblePosts: NearbyPost[]
   visiblePostCount: number
   isMapLoaded: boolean
   isBottomSheetOpen: boolean
@@ -24,6 +25,7 @@ interface MapState {
   setSelectedPost: (post: PostWithUser | NearbyPost | null) => void
   setHoveredPostId: (id: string | null) => void
   setNearbyPosts: (posts: NearbyPost[]) => void
+  setVisiblePosts: (posts: NearbyPost[]) => void
   setVisiblePostCount: (count: number) => void
   setMapLoaded: (loaded: boolean) => void
   setBottomSheetOpen: (open: boolean) => void
@@ -44,6 +46,7 @@ const initialState = {
   selectedPost: null,
   hoveredPostId: null,
   nearbyPosts: [],
+  visiblePosts: [],
   visiblePostCount: 0,
   isMapLoaded: false,
   isBottomSheetOpen: false,
@@ -67,6 +70,9 @@ export const useMapStore = create<MapState>()(
 
       setNearbyPosts: (nearbyPosts) =>
         set({ nearbyPosts }, false, 'setNearbyPosts'),
+
+      setVisiblePosts: (visiblePosts) =>
+        set({ visiblePosts }, false, 'setVisiblePosts'),
 
       setVisiblePostCount: (visiblePostCount) =>
         set({ visiblePostCount }, false, 'setVisiblePostCount'),

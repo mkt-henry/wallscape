@@ -34,7 +34,7 @@ if (typeof window !== 'undefined') {
 
 function MapContent() {
   const searchParams = useSearchParams()
-  const { center, zoom, setCenter, isBottomSheetOpen, closePostSheet, visiblePostCount, nearbyPosts } = useMapStore()
+  const { center, zoom, setCenter, isBottomSheetOpen, closePostSheet, visiblePostCount, visiblePosts } = useMapStore()
   const { location, requestLocation } = useLocation()
   const [isNearbyModalOpen, setIsNearbyModalOpen] = useState(false)
 
@@ -83,7 +83,7 @@ function MapContent() {
       {/* Post count overlay */}
       <div className="absolute left-4 bottom-[calc(80px+env(safe-area-inset-bottom))] md:bottom-6 z-10">
         <button
-          onClick={() => nearbyPosts.length > 0 && setIsNearbyModalOpen(true)}
+          onClick={() => visiblePosts.length > 0 && setIsNearbyModalOpen(true)}
           className="glass rounded-2xl px-4 py-2 shadow-card tap-highlight-none active:scale-95 transition-transform text-left"
         >
           <p className="text-white text-xs font-semibold">이 지역 게시물</p>
@@ -94,7 +94,7 @@ function MapContent() {
       {/* Nearby posts modal */}
       {isNearbyModalOpen && (
         <NearbyPostsModal
-          posts={nearbyPosts}
+          posts={visiblePosts}
           onClose={() => setIsNearbyModalOpen(false)}
         />
       )}

@@ -59,6 +59,7 @@ export function KakaoMap({ prefetchedPosts }: KakaoMapProps) {
     setZoom,
     setMapLoaded,
     setNearbyPosts,
+    setVisiblePosts,
     setVisiblePostCount,
     openPostSheet,
   } = useMapStore()
@@ -179,16 +180,17 @@ export function KakaoMap({ prefetchedPosts }: KakaoMapProps) {
 
     setNearbyPosts(nearbyPosts)
 
-    // Count only posts within the current viewport bounds
+    // Filter posts to current viewport bounds
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const bounds = (map as any).getBounds()
-    const visibleCount = nearbyPosts.filter((post) => {
-      const sw = bounds.getSouthWest()
-      const ne = bounds.getNorthEast()
-      return post.lat >= sw.getLat() && post.lat <= ne.getLat() &&
-             post.lng >= sw.getLng() && post.lng <= ne.getLng()
-    }).length
-    setVisiblePostCount(visibleCount)
+    const sw = bounds.getSouthWest()
+    const ne = bounds.getNorthEast()
+    const inBounds = nearbyPosts.filter((post) =>
+      post.lat >= sw.getLat() && post.lat <= ne.getLat() &&
+      post.lng >= sw.getLng() && post.lng <= ne.getLng()
+    )
+    setVisiblePosts(inBounds)
+    setVisiblePostCount(inBounds.length)
   }, [nearbyPosts, isKakaoLoaded, selectedPost?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Render user location marker
