@@ -33,11 +33,11 @@ if (typeof window !== 'undefined') {
 
 function MapContent() {
   const searchParams = useSearchParams()
-  const { center, zoom, setCenter, isBottomSheetOpen, closePostSheet } = useMapStore()
+  const { center, zoom, setCenter, isBottomSheetOpen, closePostSheet, visiblePostCount } = useMapStore()
   const { location, requestLocation } = useLocation()
 
   // Fetch nearby posts immediately — no need to wait for Kakao SDK
-  const { data: nearbyPosts } = useNearbyPosts(center.lat, center.lng, zoom)
+  useNearbyPosts(center.lat, center.lng, zoom)
 
   // Handle URL params
   useEffect(() => {
@@ -82,7 +82,7 @@ function MapContent() {
       <div className="absolute left-4 bottom-[calc(80px+env(safe-area-inset-bottom))] md:bottom-6 z-10">
         <div className="glass rounded-2xl px-4 py-2 shadow-card">
           <p className="text-white text-xs font-semibold">이 지역 게시물</p>
-          <p className="text-primary text-lg font-black leading-tight">{nearbyPosts?.length ?? '-'}</p>
+          <p className="text-primary text-lg font-black leading-tight">{visiblePostCount}</p>
         </div>
       </div>
 

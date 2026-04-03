@@ -13,6 +13,7 @@ interface MapState {
   selectedPost: PostWithUser | NearbyPost | null
   hoveredPostId: string | null
   nearbyPosts: NearbyPost[]
+  visiblePostCount: number
   isMapLoaded: boolean
   isBottomSheetOpen: boolean
   searchRadius: number // meters
@@ -23,6 +24,7 @@ interface MapState {
   setSelectedPost: (post: PostWithUser | NearbyPost | null) => void
   setHoveredPostId: (id: string | null) => void
   setNearbyPosts: (posts: NearbyPost[]) => void
+  setVisiblePostCount: (count: number) => void
   setMapLoaded: (loaded: boolean) => void
   setBottomSheetOpen: (open: boolean) => void
   setSearchRadius: (radius: number) => void
@@ -42,6 +44,7 @@ const initialState = {
   selectedPost: null,
   hoveredPostId: null,
   nearbyPosts: [],
+  visiblePostCount: 0,
   isMapLoaded: false,
   isBottomSheetOpen: false,
   searchRadius: 2000, // 2km default
@@ -64,6 +67,9 @@ export const useMapStore = create<MapState>()(
 
       setNearbyPosts: (nearbyPosts) =>
         set({ nearbyPosts }, false, 'setNearbyPosts'),
+
+      setVisiblePostCount: (visiblePostCount) =>
+        set({ visiblePostCount }, false, 'setVisiblePostCount'),
 
       setMapLoaded: (isMapLoaded) =>
         set({ isMapLoaded }, false, 'setMapLoaded'),
