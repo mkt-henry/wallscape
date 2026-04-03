@@ -1,7 +1,8 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
+import { useTranslations } from 'next-intl'
 import { X, Heart, MapPin, ExternalLink, Navigation } from 'lucide-react'
 import { useMapStore } from '@/stores/useMapStore'
 import { Avatar } from '@/components/ui/Avatar'
@@ -11,7 +12,7 @@ import type { NearbyPost } from '@/types'
 
 export function MarkerBottomSheet() {
   const { selectedPost, closePostSheet } = useMapStore()
-
+  const t = useTranslations('map')
   const { user } = useAuthStore()
 
   if (!selectedPost) return null
@@ -81,7 +82,7 @@ export function MarkerBottomSheet() {
               <div className="flex items-center gap-1 mb-2">
                 <Navigation size={12} className="text-secondary" />
                 <span className="text-secondary text-xs font-medium">
-                  {formatDistance(post.distance_meters)} 거리
+                  {formatDistance(post.distance_meters)} {t('distance')}
                 </span>
               </div>
             )}
@@ -142,7 +143,7 @@ export function MarkerBottomSheet() {
             className="flex items-center justify-center gap-2 bg-primary text-white font-semibold py-3 rounded-2xl tap-highlight-none active:scale-95 transition-transform"
           >
             <ExternalLink size={18} />
-            게시물 보기
+            {t('viewPost')}
           </Link>
 
           <button
@@ -150,7 +151,7 @@ export function MarkerBottomSheet() {
             className="flex items-center justify-center gap-2 bg-surface-2 text-white font-semibold py-3 rounded-2xl border border-border tap-highlight-none active:scale-95 transition-transform"
           >
             <Navigation size={18} />
-            길찾기
+            {t('directions')}
           </button>
         </div>
       </div>

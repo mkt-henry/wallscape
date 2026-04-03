@@ -1,0 +1,339 @@
+'use client'
+
+import { useEffect, useState, Suspense } from 'react'
+import { useRouter } from '@/i18n/routing'
+import { useSearchParams } from 'next/navigation'
+import { Link } from '@/i18n/routing'
+import { useTranslations } from 'next-intl'
+import Image from 'next/image'
+import { MapPin, Camera, Users, Compass, ArrowRight, Star } from 'lucide-react'
+import { useAuthStore } from '@/stores/useAuthStore'
+import { getSupabaseClient } from '@/lib/supabase/client'
+import { Logo } from '@/components/ui/Logo'
+
+const FEATURES = [
+  {
+    icon: MapPin,
+    titleKey: 'featureDiscoverTitle' as const,
+    descKey: 'featureDiscoverDesc' as const,
+    color: 'from-fuchsia-500/20 to-purple-500/20',
+    iconColor: 'text-fuchsia-400',
+  },
+  {
+    icon: Camera,
+    titleKey: 'featureRecordTitle' as const,
+    descKey: 'featureRecordDesc' as const,
+    color: 'from-cyan-500/20 to-blue-500/20',
+    iconColor: 'text-cyan-400',
+  },
+  {
+    icon: Users,
+    titleKey: 'featureCommunityTitle' as const,
+    descKey: 'featureCommunityDesc' as const,
+    color: 'from-purple-500/20 to-pink-500/20',
+    iconColor: 'text-purple-400',
+  },
+  {
+    icon: Compass,
+    titleKey: 'featureExploreTitle' as const,
+    descKey: 'featureExploreDesc' as const,
+    color: 'from-lime-500/20 to-emerald-500/20',
+    iconColor: 'text-lime-400',
+  },
+]
+
+const STATS = [
+  { value: '1,200+', labelKey: 'statPosts' as const },
+  { value: '340+', labelKey: 'statUsers' as const },
+  { value: '25+', labelKey: 'statNeighborhoods' as const },
+  { value: '4.9', labelKey: 'statRating' as const, icon: Star },
+]
+
+type PreviewPost = {
+  id: string
+  image_url: string
+  thumbnail_url: string | null
+  title: string
+  district: string | null
+  address: string | null
+}
+
+function LandingContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { isInitialized, isLoading, user } = useAuthStore()
+  const t = useTranslations('landing')
+  const tc = useTranslations('common')
+  const [previewPosts, setPreviewPosts] = useState<PreviewPost[]>([])
+
+  useEffect(() => {
+    const code = searchParams.get('code')
+    if (code) {
+      router.replace(`/auth/callback?code=${code}`)
+    }
+  }, [router, searchParams])
+
+  useEffect(() => {
+    const supabase = getSupabaseClient()
+    supabase
+      .from('posts')
+      .select('id, image_url, thumbnail_url, title, district, address')
+      .eq('visibility', 'public')
+      .order('created_at', { ascending: false })
+      .limit(6)
+      .then(({ data }) => {
+        if (data && data.length > 0) setPreviewPosts(data)
+      })
+  }, [])
+
+  return (
+    <div className="min-h-screen bg-background text-white overflow-x-hidden">
+
+      {/* ── Nav ─────────────────────────────── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-white/5">
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Logo size="md" showText />
+          <div className="flex items-center gap-3">
+            {user ? (
+              <>
+                <Link
+                  href="/profile"
+                  className="text-sm text-text-secondary hover:text-white transition-colors tap-highlight-none"
+                >
+                  {t('myProfile')}
+                </Link>
+                <Link
+                  href="/feed"
+                  className="text-sm font-semibold bg-primary text-white px-4 py-2 rounded-full hover:bg-primary-hover transition-colors tap-highlight-none"
+                >
+                  {t('viewFeed')}
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm text-text-secondary hover:text-white transition-colors tap-highlight-none"
+                >
+                  {tc('login')}
+                </Link>
+                <Link
+                  href="/feed"
+                  className="text-sm font-semibold bg-primary text-white px-4 py-2 rounded-full hover:bg-primary-hover transition-colors tap-highlight-none"
+                >
+                  {t('explore')}
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* ── Hero ────────────────────────────── */}
+      <section className="relative pt-32 pb-20 px-6 overflow-hidden">
+        {/* Background glow — brand colors */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-fuchsia-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-20 right-0 w-[300px] h-[300px] bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-40 left-0 w-[200px] h-[200px] bg-lime-400/8 rounded-full blur-[80px] pointer-events-none" />
+
+        <div className="relative max-w-5xl mx-auto flex items-center">
+          {/* Left: text content */}
+          <div className="flex-1 min-w-0">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-8">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-primary text-xs font-semibold">{t('badge')}</span>
+            </div>
+
+            <h1 className="text-5xl md:text-7xl font-black leading-[1.05] tracking-tight mb-6 whitespace-pre-line">
+              {t.rich('heroTitle', {
+                br: () => <br />,
+              })}
+            </h1>
+
+            <p className="text-text-secondary text-lg md:text-xl leading-relaxed max-w-xl mb-10 whitespace-pre-line">
+              {t('heroDesc')}
+            </p>
+
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/feed"
+                className="flex items-center gap-2 bg-primary text-white font-bold px-7 py-3.5 rounded-2xl hover:opacity-90 transition-all active:scale-95 tap-highlight-none shadow-glow-primary"
+              >
+                {t('cta')}
+                <ArrowRight size={18} />
+              </Link>
+              {!user && (
+                <Link
+                  href="/signup"
+                  className="flex items-center gap-2 bg-surface-2 text-white font-semibold px-7 py-3.5 rounded-2xl border border-border hover:bg-surface-3 transition-all active:scale-95 tap-highlight-none"
+                >
+                  {t('signupCta')}
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Right: logo element — hidden on mobile */}
+          <div className="hidden md:flex flex-shrink-0 items-center justify-center w-[340px] lg:w-[420px]">
+            <Image
+              src="/logo-element.png"
+              alt="Wallscape logo"
+              width={420}
+              height={420}
+              className="w-full h-auto drop-shadow-[0_0_60px_rgba(217,70,239,0.3)]"
+              priority
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Preview grid ────────────────────── */}
+      <section className="px-6 pb-20">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
+            {previewPosts.length > 0
+              ? previewPosts.map((post, i) => (
+                  <Link
+                    key={post.id}
+                    href={`/feed/${post.id}`}
+                    className={`relative rounded-2xl overflow-hidden tap-highlight-none group
+                      ${i === 0 || i === 3 ? 'aspect-[3/4]' : 'aspect-square'}
+                    `}
+                  >
+                    <Image
+                      src={post.thumbnail_url ?? post.image_url}
+                      alt={post.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 768px) 33vw, 16vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <span className="text-white text-xs font-semibold flex items-center gap-1">
+                        <MapPin size={10} />
+                        {post.district || post.address || '서울'}
+                      </span>
+                    </div>
+                  </Link>
+                ))
+              : Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`relative rounded-2xl bg-surface animate-pulse
+                      ${i === 0 || i === 3 ? 'aspect-[3/4]' : 'aspect-square'}
+                    `}
+                  />
+                ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Stats ───────────────────────────── */}
+      <section className="px-6 py-16 border-y border-white/5">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+          {STATS.map(({ value, labelKey, icon: Icon }) => (
+            <div key={labelKey} className="text-center">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                {Icon && <Icon size={18} className="text-accent fill-accent" />}
+                <span className="text-3xl md:text-4xl font-black text-primary">{value}</span>
+              </div>
+              <p className="text-text-secondary text-sm">{t(labelKey)}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Features ────────────────────────── */}
+      <section className="px-6 py-20">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-black mb-3">
+              {t('sectionTitle')}
+            </h2>
+            <p className="text-text-secondary text-base">
+              {t('sectionSubtitle')}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {FEATURES.map(({ icon: Icon, titleKey, descKey, color, iconColor }) => (
+              <div
+                key={titleKey}
+                className={`relative bg-gradient-to-br ${color} border border-white/5 rounded-3xl p-6 overflow-hidden group hover:border-white/10 transition-colors`}
+              >
+                <div className={`w-12 h-12 rounded-2xl bg-black/30 flex items-center justify-center mb-4`}>
+                  <Icon size={24} className={iconColor} />
+                </div>
+                <h3 className="text-white font-bold text-lg mb-2">{t(titleKey)}</h3>
+                <p className="text-text-secondary text-sm leading-relaxed">{t(descKey)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ─────────────────────────────── */}
+      <section className="px-6 py-20">
+        <div className="max-w-5xl mx-auto">
+          <div className="relative bg-gradient-to-br from-fuchsia-500/15 via-cyan-500/10 to-lime-400/10 border border-primary/20 rounded-3xl p-10 md:p-16 text-center overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+            <div className="relative">
+              <div className="flex justify-center mb-6">
+                <Logo size="xl" />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-black mb-4">
+                {t('ctaTitle')}
+              </h2>
+              <p className="text-text-secondary text-base mb-8 max-w-md mx-auto">
+                {t('ctaDesc')}
+              </p>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <Link
+                  href="/feed"
+                  className="flex items-center gap-2 bg-primary text-white font-bold px-8 py-4 rounded-2xl hover:opacity-90 transition-all active:scale-95 tap-highlight-none shadow-glow-primary"
+                >
+                  {t('ctaFeed')}
+                  <ArrowRight size={18} />
+                </Link>
+                {!user && (
+                  <Link
+                    href="/signup"
+                    className="flex items-center gap-2 bg-white/10 text-white font-semibold px-8 py-4 rounded-2xl border border-white/20 hover:bg-white/15 transition-all active:scale-95 tap-highlight-none"
+                  >
+                    {tc('signup')}
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer ──────────────────────────── */}
+      <footer className="px-6 py-10 border-t border-white/5">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <Logo size="xs" showText />
+          <p className="text-text-muted text-xs text-center">
+            {t('footer')}
+          </p>
+          <div className="flex items-center gap-4 text-xs text-text-muted">
+            <Link href="/feed" className="hover:text-white transition-colors">{t('footerFeed')}</Link>
+            <Link href="/feedback" className="hover:text-white transition-colors">{t('footerFeedback')}</Link>
+            {!user && <Link href="/login" className="hover:text-white transition-colors">{tc('login')}</Link>}
+            {!user && <Link href="/signup" className="hover:text-white transition-colors">{tc('signup')}</Link>}
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  )
+}
+
+export default function LandingPage() {
+  return (
+    <Suspense fallback={null}>
+      <LandingContent />
+    </Suspense>
+  )
+}

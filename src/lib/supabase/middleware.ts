@@ -37,10 +37,14 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse
   }
 
+  // Strip locale prefix to check protected paths
+  const localeMatch = pathname.match(/^\/(ko|en)(\/.*)?$/)
+  const pathWithoutLocale = localeMatch ? (localeMatch[2] || '/') : pathname
+
   // Protected page routes - require authentication
   const protectedPaths = ['/upload', '/activity', '/profile', '/admin']
   const isProtectedPath = protectedPaths.some((path) =>
-    pathname.startsWith(path)
+    pathWithoutLocale.startsWith(path)
   )
 
   // Use getSession() instead of getUser() to avoid network calls in Edge middleware.
@@ -53,8 +57,9 @@ export async function updateSession(request: NextRequest) {
 
     if (!session) {
       const url = request.nextUrl.clone()
-      url.pathname = '/login'
-      url.searchParams.set('redirectTo', pathname)
+      const locale = localeMatch?.[1] || 'ko'
+      url.pathname = `/${locale}/login`
+      url.searchParams.set('redirectTo', pathWithoutLocale)
       return NextResponse.redirect(url)
     }
   }

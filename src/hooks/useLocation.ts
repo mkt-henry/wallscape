@@ -43,23 +43,23 @@ export function useLocation(): UseLocationReturn {
     switch (err.code) {
       case err.PERMISSION_DENIED:
         setIsPermissionDenied(true)
-        setError('위치 권한이 거부되었습니다. 설정에서 위치 권한을 허용해주세요.')
+        setError('Location permission denied. Please allow location access in your settings.')
         break
       case err.POSITION_UNAVAILABLE:
-        setError('위치 정보를 가져올 수 없습니다.')
+        setError('Location information is unavailable.')
         break
       case err.TIMEOUT:
-        setError('위치 요청 시간이 초과되었습니다.')
+        setError('Location request timed out.')
         break
       default:
-        setError('위치를 가져오는 중 오류가 발생했습니다.')
+        setError('An error occurred while retrieving location.')
     }
   }, [])
 
   const requestLocation = useCallback((): Promise<GeoLocation | null> => {
     return new Promise((resolve) => {
       if (typeof window === 'undefined' || !navigator.geolocation) {
-        setError('이 브라우저는 위치 기능을 지원하지 않습니다.')
+        setError('Geolocation is not supported by this browser.')
         resolve(null)
         return
       }

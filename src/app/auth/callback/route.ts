@@ -7,8 +7,11 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
   const redirectTo = searchParams.get('redirectTo') || '/feed'
 
+  // Detect locale from NEXT_LOCALE cookie (set by next-intl middleware)
+  const cookieStore = await cookies()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value || 'ko'
+
   if (code) {
-    const cookieStore = await cookies()
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -28,9 +31,13 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      return NextResponse.redirect(`${origin}${redirectTo}`)
+      // Prefix redirect with locale
+      const localizedRedirect = redirectTo.startsWith(`/${locale}`)
+        ? redirectTo
+        : `/${locale}${redirectTo}`
+      return NextResponse.redirect(`${origin}${localizedRedirect}`)
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth_callback_error`)
+  return NextResponse.redirect(`${origin}/${locale}/login?error=auth_callback_error`)
 }

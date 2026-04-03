@@ -1,27 +1,28 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { Link, usePathname } from '@/i18n/routing'
 import { Home, Palette, Map, MessageSquare, User, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
-  href: string
+  href: '/feed' | '/artists' | '/map' | '/community' | '/profile'
   icon: LucideIcon
-  label: string
+  labelKey: string
   isCenter?: boolean
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/feed', icon: Home, label: '피드' },
-  { href: '/artists', icon: Palette, label: '작가' },
-  { href: '/map', icon: Map, label: '지도', isCenter: true },
-  { href: '/community', icon: MessageSquare, label: '커뮤니티' },
-  { href: '/profile', icon: User, label: '프로필' },
+  { href: '/feed', icon: Home, labelKey: 'feed' },
+  { href: '/artists', icon: Palette, labelKey: 'artists' },
+  { href: '/map', icon: Map, labelKey: 'map', isCenter: true },
+  { href: '/community', icon: MessageSquare, labelKey: 'community' },
+  { href: '/profile', icon: User, labelKey: 'profile' },
 ]
 
 export function BottomNavBar() {
   const pathname = usePathname()
+  const t = useTranslations('nav')
 
   const isActive = (href: string) => {
     if (href === '/feed') return pathname === '/feed' || pathname.startsWith('/feed/')
@@ -83,7 +84,7 @@ export function BottomNavBar() {
                   active ? 'text-primary' : 'text-text-muted'
                 )}
               >
-                {item.label}
+                {t(item.labelKey)}
               </span>
             </Link>
           )

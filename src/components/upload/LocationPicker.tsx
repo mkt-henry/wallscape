@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { MapPin, Search, Navigation, X, Check } from 'lucide-react'
 import { useLocation } from '@/hooks/useLocation'
 import { debounce, cn } from '@/lib/utils'
@@ -47,6 +48,8 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
 }
 
 export function LocationPicker({ onLocationSelect, initialLocation }: LocationPickerProps) {
+  const t = useTranslations('upload')
+  const tc = useTranslations('common')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<AddressResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
@@ -164,7 +167,7 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
             <MapPin size={16} className="text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-primary text-xs font-semibold mb-0.5">선택된 위치</p>
+            <p className="text-primary text-xs font-semibold mb-0.5">{t('selectedLocation')}</p>
             <p className="text-white text-sm font-medium line-clamp-2">
               {selectedLocation.address || `${selectedLocation.lat.toFixed(5)}, ${selectedLocation.lng.toFixed(5)}`}
             </p>
@@ -187,7 +190,7 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
           <Search size={18} className="text-text-secondary shrink-0" />
           <input
             type="text"
-            placeholder="주소나 장소를 검색하세요"
+            placeholder={t('searchLocationPlaceholder')}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="flex-1 bg-transparent text-white text-sm placeholder:text-text-muted outline-none"
@@ -245,7 +248,7 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
             <Navigation size={22} className={gpsLocation ? 'text-secondary' : 'text-text-secondary'} />
           )}
           <span className="text-sm font-medium">
-            {gpsLoading ? '위치 가져오는 중...' : '내 위치 사용'}
+            {gpsLoading ? t('gettingLocation') : t('useMyLocation')}
           </span>
         </button>
 
@@ -260,7 +263,7 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
           )}
         >
           <MapPin size={22} />
-          <span className="text-sm font-medium">직접 입력</span>
+          <span className="text-sm font-medium">{t('manualInput')}</span>
         </button>
       </div>
 
@@ -268,11 +271,11 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
       {manualMode && (
         <div className="space-y-3 p-4 bg-surface-2 rounded-2xl border border-border animate-fade-in">
           <label className="text-text-secondary text-xs font-semibold uppercase tracking-wide">
-            주소 직접 입력
+            {t('manualAddressLabel')}
           </label>
           <input
             type="text"
-            placeholder="예: 서울특별시 마포구 홍익로 94"
+            placeholder={t('manualAddressPlaceholder')}
             value={manualAddress}
             onChange={(e) => setManualAddress(e.target.value)}
             className="input-base"
@@ -283,7 +286,7 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
               onClick={() => setManualMode(false)}
               className="flex-1 py-2.5 rounded-xl bg-surface-3 text-text-secondary text-sm font-medium tap-highlight-none"
             >
-              취소
+              {tc('cancel')}
             </button>
             <button
               onClick={handleManualSave}
@@ -291,7 +294,7 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
               className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold tap-highlight-none disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
               <Check size={16} />
-              확인
+              {tc('confirm')}
             </button>
           </div>
         </div>
@@ -300,7 +303,7 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
       {/* Info text */}
       {!selectedLocation && (
         <p className="text-text-muted text-xs text-center px-4">
-          정확한 위치를 지정하면 주변 아티스트들이 작품을 발견할 수 있어요
+          {t('locationHint')}
         </p>
       )}
     </div>

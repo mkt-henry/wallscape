@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { Link } from '@/i18n/routing'
+import { useRouter } from '@/i18n/routing'
+import { useTranslations } from 'next-intl'
 import { ArrowLeft, Settings, Grid3X3, Archive, Bookmark, MapPin, Share2, MoreHorizontal } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabase/client'
@@ -23,6 +24,9 @@ type ProfileTab = 'posts' | 'saved' | 'archived'
 
 export function ProfileView({ username }: ProfileViewProps) {
   const router = useRouter()
+  const t = useTranslations('profile')
+  const tc = useTranslations('common')
+  const tp = useTranslations('post')
   const { user, profile: authProfile } = useAuthStore()
   const isOwnProfile = authProfile?.username === username
   const supabase = getSupabaseClient()
@@ -186,12 +190,12 @@ export function ProfileView({ username }: ProfileViewProps) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <p className="text-white font-semibold mb-2">프로필을 찾을 수 없습니다</p>
+          <p className="text-white font-semibold mb-2">{t('notFound')}</p>
           <button
             onClick={() => router.back()}
             className="text-primary tap-highlight-none"
           >
-            돌아가기
+            {tc('goBack')}
           </button>
         </div>
       </div>
@@ -251,9 +255,9 @@ export function ProfileView({ username }: ProfileViewProps) {
           {/* Stats */}
           <div className="flex-1 pt-2">
             <div className="flex justify-around">
-              <StatItem value={profile.post_count} label="게시물" />
-              <StatItem value={profile.follower_count} label="팔로워" />
-              <StatItem value={profile.following_count} label="팔로잉" />
+              <StatItem value={profile.post_count} label={tc('posts')} />
+              <StatItem value={profile.follower_count} label={tc('followers')} />
+              <StatItem value={profile.following_count} label={tc('following')} />
             </div>
           </div>
         </div>
@@ -291,7 +295,7 @@ export function ProfileView({ username }: ProfileViewProps) {
           {isOwnProfile ? (
             <Link href="/profile/edit">
               <Button fullWidth variant="secondary" size="md">
-                프로필 편집
+                {t('editTitle')}
               </Button>
             </Link>
           ) : (
@@ -303,10 +307,10 @@ export function ProfileView({ username }: ProfileViewProps) {
                 onClick={handleFollowToggle}
                 isLoading={isFollowLoading}
               >
-                {isFollowing ? '팔로잉' : '팔로우'}
+                {isFollowing ? tc('following') : t('follow')}
               </Button>
               <Button variant="secondary" size="md" className="px-5">
-                메시지
+                {t('message')}
               </Button>
             </div>
           )}
@@ -328,7 +332,7 @@ export function ProfileView({ username }: ProfileViewProps) {
           )}
         >
           <Grid3X3 size={16} />
-          게시물
+          {t('tabPosts')}
         </button>
         {isOwnProfile && (
           <button
@@ -341,7 +345,7 @@ export function ProfileView({ username }: ProfileViewProps) {
             )}
           >
             <Bookmark size={16} />
-            저장됨
+            {t('tabSaved')}
           </button>
         )}
         {isOwnProfile && (
@@ -355,7 +359,7 @@ export function ProfileView({ username }: ProfileViewProps) {
             )}
           >
             <Archive size={16} />
-            보관함
+            {t('tabArchived')}
           </button>
         )}
       </div>
@@ -373,10 +377,10 @@ export function ProfileView({ username }: ProfileViewProps) {
                 <span className="text-3xl">🎨</span>
               </div>
               <div className="text-center">
-                <p className="text-white font-semibold mb-1">게시물이 없어요</p>
+                <p className="text-white font-semibold mb-1">{t('noPosts')}</p>
                 {isOwnProfile && (
                   <Link href="/upload" className="text-primary text-sm tap-highlight-none">
-                    첫 작품을 올려보세요
+                    {t('firstUpload')}
                   </Link>
                 )}
               </div>
@@ -398,8 +402,8 @@ export function ProfileView({ username }: ProfileViewProps) {
                 <Bookmark size={28} className="text-text-muted" />
               </div>
               <div className="text-center">
-                <p className="text-white font-semibold mb-1">저장된 게시물이 없어요</p>
-                <p className="text-text-secondary text-sm">게시물의 북마크 아이콘을 눌러 저장해보세요</p>
+                <p className="text-white font-semibold mb-1">{t('noSaved')}</p>
+                <p className="text-text-secondary text-sm">{t('savedHint')}</p>
               </div>
             </div>
           )}
@@ -412,10 +416,9 @@ export function ProfileView({ username }: ProfileViewProps) {
           {/* 30-day notice */}
           <div className="mx-4 mt-4 mb-2 flex items-start gap-2.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl px-4 py-3">
             <Archive size={15} className="text-amber-400 shrink-0 mt-0.5" />
-            <p className="text-amber-300 text-xs leading-relaxed">
-              보관된 게시물은 보관 후 <span className="font-semibold">30일이 지나면 자동으로 삭제</span>됩니다.
-              30일 이내에는 언제든 공개로 전환할 수 있어요.
-            </p>
+            <p className="text-amber-300 text-xs leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: t('archiveNotice') }}
+            />
           </div>
 
           {archivedLoading ? (
@@ -427,6 +430,8 @@ export function ProfileView({ username }: ProfileViewProps) {
                   key={post.id}
                   post={post}
                   onUnarchive={() => handleUnarchive(post.id)}
+                  t={t}
+                  tp={tp}
                 />
               ))}
             </div>
@@ -435,7 +440,7 @@ export function ProfileView({ username }: ProfileViewProps) {
               <div className="w-16 h-16 rounded-2xl bg-surface-2 flex items-center justify-center">
                 <Archive size={28} className="text-text-muted" />
               </div>
-              <p className="text-text-secondary text-sm">보관된 게시물이 없어요</p>
+              <p className="text-text-secondary text-sm">{t('noArchived')}</p>
             </div>
           )}
         </div>
@@ -465,9 +470,13 @@ export function ProfileView({ username }: ProfileViewProps) {
 function ArchivedGridItem({
   post,
   onUnarchive,
+  t,
+  tp,
 }: {
   post: PostWithUser
   onUnarchive: () => void
+  t: (key: string) => string
+  tp: (key: string) => string
 }) {
   // updated_at is set when post is archived (visibility changed to 'private')
   const archivedAt = new Date(post.updated_at)
@@ -495,13 +504,13 @@ function ArchivedGridItem({
               : 'bg-black/50 border-white/20 text-white'
           )}
         >
-          {daysLeft === 0 ? '오늘 삭제' : `D-${daysLeft}`}
+          {daysLeft === 0 ? t('deleteToday') : `D-${daysLeft}`}
         </span>
         <button
           onClick={onUnarchive}
           className="text-xs bg-white/20 hover:bg-white/30 border border-white/30 text-white rounded-full px-3 py-1 transition-colors tap-highlight-none font-medium"
         >
-          공개로 전환
+          {tp('makePublic')}
         </button>
       </div>
     </div>

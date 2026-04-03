@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useMapStore } from '@/stores/useMapStore'
 import { useLocation } from '@/hooks/useLocation'
 import { useNearbyPosts } from '@/hooks/useNearbyPosts'
@@ -41,6 +42,8 @@ interface KakaoMapProps {
 }
 
 export function KakaoMap({ prefetchedPosts }: KakaoMapProps) {
+  const t = useTranslations('map')
+  const tc = useTranslations('common')
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<unknown>(null)
   const clustererRef = useRef<unknown>(null)
@@ -76,7 +79,7 @@ export function KakaoMap({ prefetchedPosts }: KakaoMapProps) {
       .then(() => setIsKakaoLoaded(true))
       .catch((err) => {
         console.error('Kakao Maps load error:', err)
-        setLoadError('카카오맵을 불러오지 못했습니다')
+        setLoadError(t('loadError'))
       })
   }, [])
 
@@ -230,7 +233,7 @@ export function KakaoMap({ prefetchedPosts }: KakaoMapProps) {
             onClick={() => window.location.reload()}
             className="text-primary tap-highlight-none"
           >
-            다시 시도
+            {tc('retry')}
           </button>
         </div>
       </div>

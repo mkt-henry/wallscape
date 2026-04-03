@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
+import { useTranslations } from 'next-intl'
 import { Heart, MessageCircle, Bookmark, MapPin, MoreHorizontal, Archive, EyeOff, CheckCircle2, XCircle } from 'lucide-react'
 import { useLikePost, useBookmarkPost, useArchivePost } from '@/hooks/usePosts'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -18,6 +19,7 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, showLocation = true, priority = false }: PostCardProps) {
+  const t = useTranslations('post')
   const { user } = useAuthStore()
   const [isImageLoaded, setIsImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
@@ -245,12 +247,12 @@ export function PostCard({ post, showLocation = true, priority = false }: PostCa
           {post.last_report_status === 'gone' ? (
             <span className="flex items-center gap-1 text-red-400 text-xs">
               <XCircle size={12} />
-              없어짐
+              {t('statusGone')}
             </span>
           ) : post.last_report_status === 'still_there' ? (
             <span className="flex items-center gap-1 text-green-400 text-xs">
               <CheckCircle2 size={12} />
-              확인됨
+              {t('statusConfirmed')}
             </span>
           ) : null}
           <p className="text-text-muted text-xs">
@@ -262,11 +264,11 @@ export function PostCard({ post, showLocation = true, priority = false }: PostCa
         <ActionSheet
           isOpen={showMoreSheet}
           onClose={() => setShowMoreSheet(false)}
-          title="게시물 옵션"
+          title={t('postOptions')}
           options={[
             {
               icon: post.visibility === 'private' ? <EyeOff size={20} /> : <Archive size={20} />,
-              label: post.visibility === 'private' ? '공개로 전환' : '보관하기',
+              label: post.visibility === 'private' ? t('makePublic') : t('archive'),
               onClick: () =>
                 archivePost({ postId: post.id, isArchived: post.visibility === 'private' }),
             },

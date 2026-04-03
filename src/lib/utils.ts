@@ -71,8 +71,6 @@ export function getDisplayProfile(
 
 // ---- Date formatting ----------------------------------------
 
-const rtf = new Intl.RelativeTimeFormat('ko', { numeric: 'auto' })
-
 const DIVISIONS: { amount: number; name: Intl.RelativeTimeFormatUnit }[] = [
   { amount: 60, name: 'seconds' },
   { amount: 60, name: 'minutes' },
@@ -83,7 +81,8 @@ const DIVISIONS: { amount: number; name: Intl.RelativeTimeFormatUnit }[] = [
   { amount: Number.POSITIVE_INFINITY, name: 'years' },
 ]
 
-export function formatRelativeTime(dateStr: string): string {
+export function formatRelativeTime(dateStr: string, locale: string = 'ko'): string {
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
   const date = new Date(dateStr)
   let duration = (date.getTime() - new Date().getTime()) / 1000
 
@@ -98,18 +97,18 @@ export function formatRelativeTime(dateStr: string): string {
   return rtf.format(Math.round(duration), 'years')
 }
 
-export function formatDate(dateStr: string): string {
+export function formatDate(dateStr: string, locale: string = 'ko-KR'): string {
   const date = new Date(dateStr)
-  return new Intl.DateTimeFormat('ko-KR', {
+  return new Intl.DateTimeFormat(locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   }).format(date)
 }
 
-export function formatDateTime(dateStr: string): string {
+export function formatDateTime(dateStr: string, locale: string = 'ko-KR'): string {
   const date = new Date(dateStr)
-  return new Intl.DateTimeFormat('ko-KR', {
+  return new Intl.DateTimeFormat(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -278,7 +277,7 @@ export async function resizeImage(
       canvas.toBlob(
         (blob) => {
           if (blob) resolve(blob)
-          else reject(new Error('이미지 변환 실패. 다른 이미지를 시도해주세요.'))
+          else reject(new Error('Image conversion failed. Please try a different image.'))
         },
         'image/jpeg',
         quality

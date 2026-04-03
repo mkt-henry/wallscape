@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Camera, Image as ImageIcon, X, RotateCcw, MapPin } from 'lucide-react'
 import { extractExifData, createObjectURL, revokeObjectURL, cn } from '@/lib/utils'
 import type { Location } from '@/types'
@@ -15,6 +16,7 @@ const MAX_FILE_SIZE_MB = 50
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic']
 
 export function ImagePicker({ onSelect, selectedImage, preview }: ImagePickerProps) {
+  const t = useTranslations('upload')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -27,13 +29,13 @@ export function ImagePicker({ onSelect, selectedImage, preview }: ImagePickerPro
 
     // Validate type
     if (!ALLOWED_TYPES.includes(file.type) && !file.name.toLowerCase().endsWith('.heic')) {
-      setError('JPG, PNG, WEBP, HEIC 형식만 지원됩니다')
+      setError(t('imagePickerFormats'))
       return
     }
 
     // Validate size
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      setError(`파일 크기는 ${MAX_FILE_SIZE_MB}MB 이하여야 합니다`)
+      setError(t('imagePickerSize'))
       return
     }
 
@@ -99,21 +101,21 @@ export function ImagePicker({ onSelect, selectedImage, preview }: ImagePickerPro
           {/* EXIF location badge */}
           {isExtracting && (
             <div className="absolute bottom-3 left-3 glass rounded-xl px-3 py-2">
-              <p className="text-white text-xs">GPS 추출 중...</p>
+              <p className="text-white text-xs">{t('imagePickerGps')}</p>
             </div>
           )}
 
           {!isExtracting && exifFound && (
             <div className="absolute bottom-3 left-3 glass rounded-xl px-3 py-2 flex items-center gap-2">
               <MapPin size={14} className="text-primary" />
-              <p className="text-white text-xs">위치 자동 감지됨</p>
+              <p className="text-white text-xs">{t('imagePickerLocationDetected')}</p>
             </div>
           )}
 
           {!isExtracting && !exifFound && selectedImage && (
             <div className="absolute bottom-3 left-3 glass rounded-xl px-3 py-2 flex items-center gap-2">
               <MapPin size={14} className="text-text-muted" />
-              <p className="text-white/70 text-xs">위치 정보 없음 · 다음 단계에서 직접 설정</p>
+              <p className="text-white/70 text-xs">{t('locationNoAddress')}</p>
             </div>
           )}
         </div>
@@ -124,7 +126,7 @@ export function ImagePicker({ onSelect, selectedImage, preview }: ImagePickerPro
           className="w-full flex items-center justify-center gap-2 py-3 bg-surface-2 rounded-2xl text-text-secondary text-sm font-medium tap-highlight-none"
         >
           <RotateCcw size={16} />
-          사진 다시 선택
+          {t('imagePickerReselect')}
         </button>
 
         <input
@@ -176,19 +178,19 @@ export function ImagePicker({ onSelect, selectedImage, preview }: ImagePickerPro
 
         <div className="text-center px-6">
           <p className="text-white font-semibold mb-1">
-            사진을 선택하세요
+            {t('imagePickerSelect')}
           </p>
           <p className="text-text-secondary text-sm">
-            탭하거나 드래그하여 업로드
+            {t('imagePickerDrag')}
           </p>
           <p className="text-text-muted text-xs mt-2">
-            JPG, PNG, WEBP, HEIC · 최대 {MAX_FILE_SIZE_MB}MB
+            {t('imagePickerHint', { maxSize: MAX_FILE_SIZE_MB })}
           </p>
         </div>
 
         {isDragging && (
           <div className="absolute inset-0 rounded-3xl border-2 border-primary bg-primary/5 flex items-center justify-center">
-            <p className="text-primary font-semibold">놓으세요!</p>
+            <p className="text-primary font-semibold">{t('imagePickerDrop')}</p>
           </div>
         )}
       </div>
@@ -199,7 +201,7 @@ export function ImagePicker({ onSelect, selectedImage, preview }: ImagePickerPro
         className="w-full flex items-center justify-center gap-3 py-4 bg-surface-2 rounded-2xl border border-border tap-highlight-none hover:bg-surface-3 transition-colors"
       >
         <Camera size={22} className="text-primary" />
-        <span className="text-white font-medium">카메라로 촬영</span>
+        <span className="text-white font-medium">{t('imagePickerCamera')}</span>
       </button>
 
       {/* Hidden inputs */}

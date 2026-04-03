@@ -1,28 +1,29 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { Link, usePathname } from '@/i18n/routing'
 import { Home, Palette, Map, MessageSquare, User, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/Logo'
 
 interface NavItem {
-  href: string
+  href: '/feed' | '/artists' | '/map' | '/community' | '/profile'
   icon: LucideIcon
-  label: string
+  labelKey: string
   isCenter?: boolean
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/feed', icon: Home, label: '피드' },
-  { href: '/artists', icon: Palette, label: '작가' },
-  { href: '/map', icon: Map, label: '지도', isCenter: true },
-  { href: '/community', icon: MessageSquare, label: '커뮤니티' },
-  { href: '/profile', icon: User, label: '프로필' },
+  { href: '/feed', icon: Home, labelKey: 'feed' },
+  { href: '/artists', icon: Palette, labelKey: 'artists' },
+  { href: '/map', icon: Map, labelKey: 'map', isCenter: true },
+  { href: '/community', icon: MessageSquare, labelKey: 'community' },
+  { href: '/profile', icon: User, labelKey: 'profile' },
 ]
 
 export function SideNav() {
   const pathname = usePathname()
+  const t = useTranslations('nav')
 
   const isActive = (href: string) => {
     if (href === '/feed') return pathname === '/feed' || pathname.startsWith('/feed/')
@@ -53,7 +54,7 @@ export function SideNav() {
                 <div className="w-10 h-10 rounded-xl bg-gradient-brand flex items-center justify-center shadow-glow-primary transition-transform group-active:scale-90 shrink-0">
                   <Icon size={20} className="text-white" strokeWidth={2} />
                 </div>
-                <span className="hidden lg:block text-sm font-bold text-white">지도</span>
+                <span className="hidden lg:block text-sm font-bold text-white">{t('map')}</span>
               </Link>
             )
           }
@@ -80,7 +81,7 @@ export function SideNav() {
                 'hidden lg:block text-sm font-semibold transition-colors duration-200',
                 active ? 'text-primary' : ''
               )}>
-                {item.label}
+                {t(item.labelKey)}
               </span>
               {active && (
                 <div className="hidden lg:block ml-auto w-1.5 h-1.5 rounded-full bg-primary" />

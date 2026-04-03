@@ -2,7 +2,8 @@
 
 import { useRef, useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
+import { useTranslations } from 'next-intl'
 import { X, Heart, MapPin, Navigation, ExternalLink } from 'lucide-react'
 import { formatNumber, formatDistance, getDisplayProfile } from '@/lib/utils'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -14,6 +15,7 @@ interface NearbyPostsModalProps {
 }
 
 export function NearbyPostsModal({ posts, onClose }: NearbyPostsModalProps) {
+  const t = useTranslations('map')
   const { user } = useAuthStore()
   const [currentIndex, setCurrentIndex] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -53,7 +55,7 @@ export function NearbyPostsModal({ posts, onClose }: NearbyPostsModalProps) {
 
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-2">
-          <p className="text-white font-semibold text-sm">이 지역 작품</p>
+          <p className="text-white font-semibold text-sm">{t('areaArtworks')}</p>
           <div className="flex items-center gap-3">
             <span className="text-text-secondary text-sm">{currentIndex + 1} / {posts.length}</span>
             <button onClick={onClose} className="p-1 tap-highlight-none">
@@ -87,7 +89,7 @@ export function NearbyPostsModal({ posts, onClose }: NearbyPostsModalProps) {
             >
               <Image
                 src={p.image_url}
-                alt={p.title ?? '작품'}
+                alt={p.title ?? ''}
                 fill
                 className="object-cover"
                 sizes="100vw"
@@ -151,7 +153,7 @@ export function NearbyPostsModal({ posts, onClose }: NearbyPostsModalProps) {
             className="flex items-center justify-center gap-2 w-full bg-primary text-white font-semibold py-3 rounded-2xl tap-highlight-none active:scale-95 transition-transform"
           >
             <ExternalLink size={18} />
-            피드에서 보기
+            {t('viewInFeed')}
           </Link>
         </div>
       </div>

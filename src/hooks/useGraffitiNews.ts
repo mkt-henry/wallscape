@@ -72,7 +72,7 @@ export function useCreateGraffitiNews() {
 
   return useMutation({
     mutationFn: async (input: { title: string; content: string; thumbnail_url?: string }) => {
-      if (!user) throw new Error('로그인이 필요합니다')
+      if (!user) throw new Error('Login required')
       const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('graffiti_news')

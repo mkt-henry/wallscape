@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { Link } from '@/i18n/routing'
+import { useRouter } from '@/i18n/routing'
+import { useTranslations } from 'next-intl'
 import { MapPin, Heart } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabase/client'
@@ -53,6 +54,7 @@ export default function MiniMap({ lat, lng, address, postId }: MiniMapProps) {
   const [mapTilesLoaded, setMapTilesLoaded] = useState(false)
   const [error, setError] = useState(false)
   const router = useRouter()
+  const t = useTranslations('map')
   const supabase = getSupabaseClient()
 
   // Fetch nearby posts
@@ -126,7 +128,7 @@ export default function MiniMap({ lat, lng, address, postId }: MiniMapProps) {
       >
         <div className="text-center">
           <MapPin size={28} className="text-primary mx-auto mb-1.5" />
-          <p className="text-white text-sm font-medium">지도에서 보기</p>
+          <p className="text-white text-sm font-medium">{t('viewOnMap')}</p>
           {address && <p className="text-text-secondary text-xs mt-0.5">{address}</p>}
         </div>
       </div>
@@ -158,7 +160,7 @@ export default function MiniMap({ lat, lng, address, postId }: MiniMapProps) {
       {otherPosts.length > 0 && (
         <div>
           <p className="text-text-secondary text-xs font-semibold uppercase tracking-wide mb-2">
-            근처 작품 {otherPosts.length}개
+            {t('nearbyCount', { count: otherPosts.length })}
           </p>
           <NearbyPostsScroll posts={otherPosts} />
         </div>

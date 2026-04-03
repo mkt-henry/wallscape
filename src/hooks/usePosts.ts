@@ -209,7 +209,7 @@ export function useLikePost() {
 
   return useMutation({
     mutationFn: async ({ postId, isLiked }: LikeInput) => {
-      if (!user) throw new Error('로그인이 필요합니다')
+      if (!user) throw new Error('Login required')
       const supabase = getSupabaseClient()
 
       if (isLiked) {
@@ -271,7 +271,7 @@ export function useBookmarkPost() {
 
   return useMutation({
     mutationFn: async ({ postId, isBookmarked }: BookmarkInput) => {
-      if (!user) throw new Error('로그인이 필요합니다')
+      if (!user) throw new Error('Login required')
       const supabase = getSupabaseClient()
 
       if (isBookmarked) {
@@ -358,7 +358,7 @@ export function useAddComment() {
 
   return useMutation({
     mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
-      if (!user) throw new Error('로그인이 필요합니다')
+      if (!user) throw new Error('Login required')
       const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('comments')
@@ -459,7 +459,7 @@ export function useArchivePost() {
 
   return useMutation({
     mutationFn: async ({ postId, isArchived }: ArchiveInput) => {
-      if (!user) throw new Error('로그인이 필요합니다')
+      if (!user) throw new Error('Login required')
       const supabase = getSupabaseClient()
 
       const { error } = await supabase
@@ -547,7 +547,7 @@ export function useReportStatus() {
 
   return useMutation({
     mutationFn: async ({ postId, status }: { postId: string; status: 'still_there' | 'gone' }) => {
-      if (!user) throw new Error('로그인이 필요합니다')
+      if (!user) throw new Error('Login required')
       const supabase = getSupabaseClient()
 
       // Upsert the report
@@ -579,7 +579,7 @@ export function useDeletePost() {
 
   return useMutation({
     mutationFn: async (postId: string) => {
-      if (!user) throw new Error('로그인이 필요합니다')
+      if (!user) throw new Error('Login required')
       const supabase = getSupabaseClient()
       const { error } = await supabase.from('posts').delete().eq('id', postId).eq('user_id', user.id)
       if (error) throw error
@@ -605,7 +605,7 @@ export function useUpdateArtistTags() {
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || '저장에 실패했습니다.')
+        throw new Error(data.error || 'Failed to save')
       }
       return postId
     },

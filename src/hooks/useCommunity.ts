@@ -93,7 +93,7 @@ export function useCreateBoardPost() {
 
   return useMutation({
     mutationFn: async (input: { title: string; content: string; category: BoardCategory; image_url?: string | null }) => {
-      if (!user) throw new Error('로그인이 필요합니다')
+      if (!user) throw new Error('Login required')
       const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('board_posts')
@@ -115,7 +115,7 @@ export function useAddBoardComment() {
 
   return useMutation({
     mutationFn: async (input: { boardPostId: string; content: string }) => {
-      if (!user) throw new Error('로그인이 필요합니다')
+      if (!user) throw new Error('Login required')
       const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('board_comments')
