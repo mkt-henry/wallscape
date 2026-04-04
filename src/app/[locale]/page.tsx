@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 import { useRouter } from '@/i18n/routing'
 import { useSearchParams } from 'next/navigation'
 import { Link } from '@/i18n/routing'
@@ -66,6 +66,8 @@ function LandingContent() {
   const t = useTranslations('landing')
   const tc = useTranslations('common')
   const [previewPosts, setPreviewPosts] = useState<PreviewPost[]>([])
+  const [showLangMenu, setShowLangMenu] = useState(false)
+  const langRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const code = searchParams.get('code')
@@ -73,6 +75,16 @@ function LandingContent() {
       router.replace(`/auth/callback?code=${code}`)
     }
   }, [router, searchParams])
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setShowLangMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   useEffect(() => {
     const supabase = getSupabaseClient()
@@ -95,16 +107,39 @@ function LandingContent() {
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Logo size="md" showText />
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                const next = locale === 'ko' ? 'en' : 'ko'
-                router.replace('/', { locale: next })
-              }}
-              className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-white transition-colors tap-highlight-none"
-            >
-              <Globe size={16} />
-              {locale === 'ko' ? 'EN' : '한국어'}
-            </button>
+            <div className="relative" ref={langRef}>
+              <button
+                onClick={() => setShowLangMenu((v) => !v)}
+                className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-white transition-colors tap-highlight-none"
+              >
+                <Globe size={16} />
+                {{ ko: '한국어', en: 'EN', ja: '日本語' }[locale] ?? 'EN'}
+              </button>
+              {showLangMenu && (
+                <div className="absolute right-0 top-full mt-2 bg-surface border border-border rounded-xl py-1 shadow-lg min-w-[120px] z-50">
+                  {([
+                    { code: 'ko', label: '한국어' },
+                    { code: 'en', label: 'English' },
+                    { code: 'ja', label: '日本語' },
+                  ] as const).map(({ code, label }) => (
+                    <button
+                      key={code}
+                      onClick={() => {
+                        setShowLangMenu(false)
+                        if (code !== locale) router.replace('/', { locale: code })
+                      }}
+                      className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                        code === locale
+                          ? 'text-primary font-semibold'
+                          : 'text-text-secondary hover:text-white hover:bg-surface-2'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             {user ? (
               <>
                 <Link

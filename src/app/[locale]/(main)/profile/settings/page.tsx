@@ -52,6 +52,7 @@ export default function SettingsPage() {
   const [isDeactivating, setIsDeactivating] = useState(false)
   const [showComingSoonSheet, setShowComingSoonSheet] = useState(false)
   const [comingSoonLabel, setComingSoonLabel] = useState('')
+  const [showLanguageSheet, setShowLanguageSheet] = useState(false)
 
   const openComingSoon = (label: string) => {
     setComingSoonLabel(label)
@@ -121,14 +122,8 @@ export default function SettingsPage() {
         {
           icon: <Globe size={20} />,
           label: t('language'),
-          value: locale === 'ko' ? t('korean') : t('english'),
-          action: async () => {
-            const next = locale === 'ko' ? 'en' : 'ko'
-            try {
-              await updateProfile({ preferred_locale: next } as any)
-            } catch {}
-            router.replace('/profile/settings', { locale: next })
-          },
+          value: { ko: t('korean'), en: t('english'), ja: t('japanese') }[locale] ?? t('korean'),
+          action: () => setShowLanguageSheet(true),
         },
       ],
     },
@@ -280,6 +275,37 @@ export default function SettingsPage() {
           <Button onClick={() => setShowComingSoonSheet(false)} fullWidth variant="secondary">
             {tc('confirm')}
           </Button>
+        </div>
+      </BottomSheet>
+
+      {/* Language sheet */}
+      <BottomSheet isOpen={showLanguageSheet} onClose={() => setShowLanguageSheet(false)} title={t('language')}>
+        <div className="px-4 pb-safe-bottom pb-6 space-y-1">
+          {([
+            { code: 'ko', label: t('korean') },
+            { code: 'en', label: t('english') },
+            { code: 'ja', label: t('japanese') },
+          ] as const).map(({ code, label }) => (
+            <button
+              key={code}
+              onClick={async () => {
+                setShowLanguageSheet(false)
+                if (code !== locale) {
+                  try {
+                    await updateProfile({ preferred_locale: code } as any)
+                  } catch {}
+                  router.replace('/profile/settings', { locale: code })
+                }
+              }}
+              className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-colors ${
+                code === locale
+                  ? 'text-primary font-semibold bg-primary/10'
+                  : 'text-white hover:bg-surface-2'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </BottomSheet>
     </div>
