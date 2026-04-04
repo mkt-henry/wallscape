@@ -42,7 +42,7 @@ const DEFAULT_CENTER: MapCenter = {
 
 const initialState = {
   center: DEFAULT_CENTER,
-  zoom: 5,
+  zoom: 13,
   selectedPost: null,
   hoveredPostId: null,
   nearbyPosts: [],

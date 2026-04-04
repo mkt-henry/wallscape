@@ -22,7 +22,7 @@ export function MarkerBottomSheet() {
   const { profile: author, isAnonymous } = getDisplayProfile(post.profiles, post.show_in_profile, user?.id, post.user_id, post.id)
 
   const handleDirections = () => {
-    const url = `https://map.kakao.com/link/to/${encodeURIComponent(post.title)},${post.lat},${post.lng}`
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${post.lat},${post.lng}`
     window.open(url, '_blank')
   }
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { MapPin, Search, Navigation, X, Check } from 'lucide-react'
 import { useLocation } from '@/hooks/useLocation'
 import { debounce, cn } from '@/lib/utils'
@@ -13,33 +13,44 @@ interface LocationPickerProps {
 }
 
 interface AddressResult {
-  address_name: string
-  road_address_name?: string
-  x: string // lng
-  y: string // lat
+  display_name: string
+  lat: string
+  lon: string
+  address?: {
+    road?: string
+    house_number?: string
+    neighbourhood?: string
+    quarter?: string
+    suburb?: string
+    city_district?: string
+    city?: string
+    town?: string
+    village?: string
+    county?: string
+    state?: string
+    province?: string
+    country?: string
+  }
 }
 
-async function searchAddress(query: string): Promise<AddressResult[]> {
-  const appKey = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY
-  if (!appKey) return []
-
+async function searchAddress(query: string, locale: string): Promise<AddressResult[]> {
   try {
     const res = await fetch(
-      `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}&size=5`,
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&addressdetails=1&accept-language=${locale}`,
       {
-        headers: { Authorization: `KakaoAK ${appKey}` },
+        headers: { 'User-Agent': 'Wallscape/1.0 (https://wallscape.bp-studio.com)' },
       }
     )
     const data = await res.json()
-    return data.documents || []
+    return data || []
   } catch {
     return []
   }
 }
 
-async function reverseGeocode(lat: number, lng: number): Promise<string> {
+async function reverseGeocode(lat: number, lng: number, locale: string): Promise<string> {
   try {
-    const res = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`)
+    const res = await fetch(`/api/geocode?lat=${lat}&lng=${lng}&locale=${locale}`)
     const data = await res.json()
     return data.address || `${lat.toFixed(5)}, ${lng.toFixed(5)}`
   } catch {
@@ -47,9 +58,40 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
   }
 }
 
+function extractLocationFromResult(result: AddressResult): { address: string; city: string; district: string } {
+  const a = result.address
+  if (!a) return { address: result.display_name, city: '', district: '' }
+
+  const city = a.city || a.town || a.village || a.province || a.state || ''
+  const district = a.city_district || a.suburb || a.county || ''
+
+  // Build a readable address from structured parts
+  const parts = [
+    a.province || a.state,
+    a.city || a.town || a.village,
+    a.city_district || a.suburb || a.county,
+    a.quarter || a.neighbourhood,
+    a.road,
+    a.house_number,
+  ].filter(Boolean)
+
+  const address = parts.length > 0 ? parts.join(' ') : result.display_name
+
+  return { address, city, district }
+}
+
+function extractLocationFromAddress(address: string): { city: string; district: string } {
+  const parts = address.split(' ').filter(Boolean)
+  const city = parts[0] || ''
+  const district = parts[1] || ''
+  if (/^\d/.test(city)) return { city: '', district: '' }
+  return { city, district }
+}
+
 export function LocationPicker({ onLocationSelect, initialLocation }: LocationPickerProps) {
   const t = useTranslations('upload')
   const tc = useTranslations('common')
+  const locale = useLocale()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<AddressResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
@@ -67,11 +109,11 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
         return
       }
       setIsSearching(true)
-      const results = await searchAddress(q)
+      const results = await searchAddress(q, locale)
       setSearchResults(results)
       setIsSearching(false)
     }, 500),
-    []
+    [locale]
   )
 
   const handleSearchChange = (value: string) => {
@@ -80,10 +122,9 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
   }
 
   const handleResultSelect = async (result: AddressResult) => {
-    const lat = parseFloat(result.y)
-    const lng = parseFloat(result.x)
-    const address = result.road_address_name || result.address_name
-    const { city, district } = extractLocation(address)
+    const lat = parseFloat(result.lat)
+    const lng = parseFloat(result.lon)
+    const { address, city, district } = extractLocationFromResult(result)
 
     const location: Location = {
       lat,
@@ -105,8 +146,8 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
       return
     }
 
-    const address = await reverseGeocode(gpsLocation.lat, gpsLocation.lng)
-    const { city, district } = extractLocation(address)
+    const address = await reverseGeocode(gpsLocation.lat, gpsLocation.lng, locale)
+    const { city, district } = extractLocationFromAddress(address)
     const location: Location = {
       lat: gpsLocation.lat,
       lng: gpsLocation.lng,
@@ -127,8 +168,8 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
       Number.isFinite(initialLocation.lat) &&
       Number.isFinite(initialLocation.lng)
     ) {
-      reverseGeocode(initialLocation.lat, initialLocation.lng).then((address) => {
-        const { city, district } = extractLocation(address)
+      reverseGeocode(initialLocation.lat, initialLocation.lng, locale).then((address) => {
+        const { city, district } = extractLocationFromAddress(address)
         const enriched: Location = { ...initialLocation, address, city, district }
         setSelectedLocation(enriched)
         onLocationSelect(enriched)
@@ -145,12 +186,11 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
   const handleManualSave = () => {
     if (!manualAddress.trim()) return
 
-    // Use Seoul as fallback coordinates if no GPS
     const location: Location = {
       lat: selectedLocation?.lat ?? 37.5665,
       lng: selectedLocation?.lng ?? 126.978,
       address: manualAddress.trim(),
-      city: extractLocation(manualAddress).city,
+      city: extractLocationFromAddress(manualAddress).city,
     }
 
     setSelectedLocation(location)
@@ -206,25 +246,28 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
         {/* Search results dropdown */}
         {searchResults.length > 0 && (
           <div className="absolute top-full left-0 right-0 mt-2 bg-surface border border-border rounded-2xl overflow-hidden shadow-card z-10">
-            {searchResults.map((result, i) => (
-              <button
-                key={i}
-                onClick={() => handleResultSelect(result)}
-                className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-surface-2 transition-colors tap-highlight-none border-b border-border/30 last:border-0"
-              >
-                <MapPin size={16} className="text-primary mt-0.5 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-white text-sm font-medium truncate">
-                    {result.road_address_name || result.address_name}
-                  </p>
-                  {result.road_address_name && result.address_name !== result.road_address_name && (
-                    <p className="text-text-secondary text-xs truncate mt-0.5">
-                      {result.address_name}
+            {searchResults.map((result, i) => {
+              const { address } = extractLocationFromResult(result)
+              return (
+                <button
+                  key={i}
+                  onClick={() => handleResultSelect(result)}
+                  className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-surface-2 transition-colors tap-highlight-none border-b border-border/30 last:border-0"
+                >
+                  <MapPin size={16} className="text-primary mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-white text-sm font-medium truncate">
+                      {address}
                     </p>
-                  )}
-                </div>
-              </button>
-            ))}
+                    {result.display_name !== address && (
+                      <p className="text-text-secondary text-xs truncate mt-0.5">
+                        {result.display_name}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              )
+            })}
           </div>
         )}
       </div>
@@ -308,14 +351,4 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
       )}
     </div>
   )
-}
-
-function extractLocation(address: string): { city: string; district: string } {
-  // Korean address: "서울특별시 마포구 홍익로 94" or "서울 강남구 삼성동 166"
-  const parts = address.split(' ').filter(Boolean)
-  const city = parts[0] || ''
-  const district = parts.find((p) => /[구군]$/.test(p)) || parts[1] || ''
-  // Don't save if it looks like coordinates
-  if (/^\d/.test(city)) return { city: '', district: '' }
-  return { city, district }
 }

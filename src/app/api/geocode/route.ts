@@ -4,14 +4,41 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const lat = searchParams.get('lat')
   const lng = searchParams.get('lng')
+  const locale = searchParams.get('locale') || 'ko'
 
   if (!lat || !lng) {
     return NextResponse.json({ error: 'lat, lng required' }, { status: 400 })
   }
 
-  const appKey = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY
+  // Primary: Nominatim (works globally)
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&accept-language=${locale}`,
+      { headers: { 'User-Agent': 'Wallscape/1.0 (https://wallscape.bp-studio.com)' } }
+    )
+    if (res.ok) {
+      const data = await res.json()
+      const a = data.address
+      if (a) {
+        const parts = [
+          a.province || a.state || a.city,
+          a.county || a.city_district || a.suburb,
+          a.neighbourhood || a.quarter,
+          a.road,
+          a.house_number,
+        ].filter(Boolean)
+        const address = parts.length > 0 ? parts.join(' ') : data.display_name
+        const city = a.province || a.state || a.city || a.town || null
+        const district = a.county || a.city_district || a.suburb || null
+        return NextResponse.json({ address, city, district })
+      }
+    }
+  } catch {
+    // fall through to Kakao fallback
+  }
 
-  // Try Kakao first
+  // Fallback: Kakao (Korea only, higher quality for Korean addresses)
+  const appKey = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY
   if (appKey) {
     try {
       const res = await fetch(
@@ -35,36 +62,8 @@ export async function GET(request: NextRequest) {
         if (address) return NextResponse.json({ address, city, district })
       }
     } catch {
-      // fall through to Nominatim
+      // fall through
     }
-  }
-
-  // Fallback: Nominatim (OpenStreetMap)
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ko`,
-      { headers: { 'User-Agent': 'Wallscape/1.0 (https://wallscape.bp-studio.com)' } }
-    )
-    if (res.ok) {
-      const data = await res.json()
-      const a = data.address
-      if (a) {
-        // Build Korean-style address: 시/도 구/군 읍/면/동 번지
-        const parts = [
-          a.province || a.state || a.city,
-          a.county || a.city_district || a.suburb,
-          a.neighbourhood || a.quarter,
-          a.road,
-          a.house_number,
-        ].filter(Boolean)
-        const address = parts.length > 0 ? parts.join(' ') : data.display_name
-        const city = a.province || a.state || a.city || null
-        const district = a.county || a.city_district || a.suburb || null
-        return NextResponse.json({ address, city, district })
-      }
-    }
-  } catch {
-    // fall through
   }
 
   return NextResponse.json({ address: null, city: null, district: null })

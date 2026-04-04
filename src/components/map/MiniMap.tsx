@@ -6,8 +6,10 @@ import { useRouter } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
 import { MapPin, Heart } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 import { getSupabaseClient } from '@/lib/supabase/client'
-import { loadKakaoScript } from '@/lib/kakao'
+import { MAP_STYLE, toLngLat } from '@/lib/maplibre'
 import { formatNumber, formatRelativeTime } from '@/lib/utils'
 import type { NearbyPost } from '@/types'
 
@@ -18,40 +20,36 @@ interface MiniMapProps {
   postId: string
 }
 
-function createMarkerContent(imageUrl: string, isHighlighted: boolean): string {
+function createMarkerElement(imageUrl: string, isHighlighted: boolean): HTMLDivElement {
   const borderColor = isHighlighted ? '#22D3EE' : '#D946EF'
   const shadow = isHighlighted
     ? '0 2px 16px rgba(34, 211, 238, 0.7)'
     : '0 2px 10px rgba(217, 70, 239, 0.4)'
-  const size = isHighlighted ? '52' : '40'
-  const scale = isHighlighted ? 'transform: scale(1.0);' : ''
+  const size = isHighlighted ? 52 : 40
 
-  return `<div style="
+  const el = document.createElement('div')
+  el.innerHTML = `<div style="
     width: ${size}px; height: ${size}px;
     border-radius: 50%; overflow: hidden;
     border: 3px solid ${borderColor};
     box-shadow: ${shadow};
     background: #13131A;
-    ${scale}
   ">
     <img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;"
       onerror="this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;background:#D946EF;display:flex;align-items:center;justify-content:center;font-size:14px;\\'>🎨</div>'"
     />
   </div>`
+  return el
 }
 
 function formatDistance(m: number): string {
   return m < 1000 ? `${Math.round(m)}m` : `${(m / 1000).toFixed(1)}km`
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyKakao = any
-
 export default function MiniMap({ lat, lng, address, postId }: MiniMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<AnyKakao>(null)
-  const [isKakaoLoaded, setIsKakaoLoaded] = useState(false)
-  const [mapTilesLoaded, setMapTilesLoaded] = useState(false)
+  const mapRef = useRef<maplibregl.Map | null>(null)
+  const [mapLoaded, setMapLoaded] = useState(false)
   const [error, setError] = useState(false)
   const router = useRouter()
   const t = useTranslations('map')
@@ -72,50 +70,47 @@ export default function MiniMap({ lat, lng, address, postId }: MiniMapProps) {
     staleTime: 60_000,
   })
 
-  // Load SDK
-  useEffect(() => {
-    loadKakaoScript()
-      .then(() => setIsKakaoLoaded(true))
-      .catch(() => setError(true))
-  }, [])
-
   // Init map
   useEffect(() => {
-    if (!isKakaoLoaded || !containerRef.current) return
-    const kakao = (window as AnyKakao).kakao
+    if (!containerRef.current) return
 
-    const map = new kakao.maps.Map(containerRef.current, {
-      center: new kakao.maps.LatLng(lat, lng),
-      level: 4,
-      draggable: false,
-      scrollwheel: false,
-      disableDoubleClickZoom: true,
-      keyboardShortcuts: false,
-    })
-    mapRef.current = map
-    kakao.maps.event.addListener(map, 'tilesloaded', () => setMapTilesLoaded(true))
-  }, [isKakaoLoaded, lat, lng])
+    try {
+      const map = new maplibregl.Map({
+        container: containerRef.current,
+        style: MAP_STYLE,
+        center: toLngLat(lat, lng),
+        zoom: 14,
+        interactive: false,
+        attributionControl: false,
+      })
 
-  // Add markers whenever posts are loaded
+      mapRef.current = map
+      map.on('load', () => setMapLoaded(true))
+      map.on('error', () => setError(true))
+
+      return () => {
+        map.remove()
+        mapRef.current = null
+      }
+    } catch {
+      setError(true)
+    }
+  }, [lat, lng])
+
+  // Add markers
   useEffect(() => {
-    if (!isKakaoLoaded || !mapRef.current || nearbyPosts.length === 0) return
-    const kakao = (window as AnyKakao).kakao
     const map = mapRef.current
+    if (!map || !mapLoaded || nearbyPosts.length === 0) return
 
     nearbyPosts.forEach((post) => {
       const isHighlighted = post.id === postId
-      const el = document.createElement('div')
-      el.innerHTML = createMarkerContent(post.image_url, isHighlighted)
+      const el = createMarkerElement(post.image_url, isHighlighted)
 
-      new kakao.maps.CustomOverlay({
-        position: new kakao.maps.LatLng(post.lat, post.lng),
-        content: el,
-        map,
-        yAnchor: 1,
-        zIndex: isHighlighted ? 10 : 1,
-      })
+      new maplibregl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat(toLngLat(post.lat, post.lng))
+        .addTo(map)
     })
-  }, [nearbyPosts, isKakaoLoaded, postId])
+  }, [nearbyPosts, mapLoaded, postId])
 
   // Nearby posts excluding current (for bottom list)
   const otherPosts = nearbyPosts.filter((p) => p.id !== postId)
@@ -143,7 +138,7 @@ export default function MiniMap({ lat, lng, address, postId }: MiniMapProps) {
         className="rounded-2xl overflow-hidden h-44 relative cursor-pointer w-full"
       >
         <div ref={containerRef} className="w-full h-full" />
-        {!mapTilesLoaded && <div className="absolute inset-0 skeleton" />}
+        {!mapLoaded && <div className="absolute inset-0 skeleton" />}
         {/* Transparent overlay — blocks map interaction, enables click navigation */}
         <div className="absolute inset-0" />
         {address && (
@@ -169,10 +164,6 @@ export default function MiniMap({ lat, lng, address, postId }: MiniMapProps) {
   )
 }
 
-/**
- * Horizontal scroll list rendered as a separate component
- * so it creates its own overflow context independent of any ancestor overflow-x:hidden.
- */
 function NearbyPostsScroll({ posts }: { posts: NearbyPost[] }) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -186,11 +177,9 @@ function NearbyPostsScroll({ posts }: { posts: NearbyPost[] }) {
         overflowY: 'hidden',
         WebkitOverflowScrolling: 'touch',
         paddingBottom: '4px',
-        /* hide scrollbar across browsers */
-        scrollbarWidth: 'none',          /* Firefox */
-        msOverflowStyle: 'none',         /* IE/Edge */
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
       }}
-      /* hide scrollbar for Webkit */
       className="no-scrollbar"
     >
       {posts.map((post) => (

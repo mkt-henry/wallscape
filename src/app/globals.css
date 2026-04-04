@@ -185,9 +185,9 @@ button:disabled {
 }
 
 /* ============================================================
-   Kakao Maps override
+   Map styles
    ============================================================ */
-.kakao-map-container {
+.map-container {
   width: 100%;
   height: 100%;
 }

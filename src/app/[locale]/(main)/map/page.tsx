@@ -10,11 +10,9 @@ import { useLocation } from '@/hooks/useLocation'
 import { useNearbyPosts } from '@/hooks/useNearbyPosts'
 import { MarkerBottomSheet } from '@/components/map/MarkerBottomSheet'
 import { NearbyPostsModal } from '@/components/map/NearbyPostsModal'
-import { loadKakaoScript } from '@/lib/kakao'
 
-// Load Kakao map only on client
-const KakaoMap = dynamic(
-  () => import('@/components/map/KakaoMap').then((m) => m.KakaoMap),
+const MapView = dynamic(
+  () => import('@/components/map/MapView').then((m) => m.MapView),
   {
     ssr: false,
     loading: () => (
@@ -27,11 +25,6 @@ const KakaoMap = dynamic(
   }
 )
 
-// Prefetch Kakao SDK as early as possible (parallel with data fetch)
-if (typeof window !== 'undefined') {
-  loadKakaoScript().catch(() => {})
-}
-
 function MapContent() {
   const t = useTranslations('map')
   const searchParams = useSearchParams()
@@ -39,7 +32,6 @@ function MapContent() {
   const { location, requestLocation } = useLocation()
   const [isNearbyModalOpen, setIsNearbyModalOpen] = useState(false)
 
-  // Fetch nearby posts immediately — no need to wait for Kakao SDK
   const { data: prefetchedPosts } = useNearbyPosts(center.lat, center.lng, zoom)
 
   // Handle URL params
@@ -63,7 +55,7 @@ function MapContent() {
     <div className="relative w-full h-dvh bg-background overflow-hidden">
       {/* Map fills entire screen */}
       <div className="absolute inset-0">
-        <KakaoMap prefetchedPosts={prefetchedPosts} />
+        <MapView prefetchedPosts={prefetchedPosts} />
       </div>
 
       {/* Map controls */}

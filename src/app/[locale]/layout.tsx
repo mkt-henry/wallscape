@@ -82,7 +82,7 @@ export default async function LocaleLayout({
           name="apple-mobile-web-app-status-bar-style"
           content="black-translucent"
         />
-        <link rel="preconnect" href="https://dapi.kakao.com" />
+        <link rel="preconnect" href="https://api.maptiler.com" />
         <meta name="msvalidate.01" content="DD5E0C4A6898114F2203365933B47589" />
         <meta name="naver-site-verification" content="7150bc5364b84dcd1a98da90516f6a3859ac3bb0" />
       </head>
