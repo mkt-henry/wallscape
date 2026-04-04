@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { useAuth } from '@/hooks/useAuth'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { BottomSheet } from '@/components/ui/BottomSheet'
@@ -42,6 +43,7 @@ export default function SettingsPage() {
   const t = useTranslations('settings')
   const tc = useTranslations('common')
   const { profile, reset } = useAuthStore()
+  const { updateProfile } = useAuth()
   const supabase = getSupabaseClient()
 
   const [showLogoutSheet, setShowLogoutSheet] = useState(false)
@@ -120,8 +122,11 @@ export default function SettingsPage() {
           icon: <Globe size={20} />,
           label: t('language'),
           value: locale === 'ko' ? t('korean') : t('english'),
-          action: () => {
+          action: async () => {
             const next = locale === 'ko' ? 'en' : 'ko'
+            try {
+              await updateProfile({ preferred_locale: next } as any)
+            } catch {}
             router.replace('/profile/settings', { locale: next })
           },
         },

@@ -1,11 +1,14 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useLocale } from 'next-intl'
+import { useRouter, usePathname } from '@/i18n/routing'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/useAuthStore'
 import type { Profile } from '@/types'
+import type { Locale } from '@/i18n/config'
 
 // ---- React Query setup -------------------------------------
 
@@ -52,6 +55,9 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     reset,
   } = useAuthStore()
 
+  const locale = useLocale()
+  const router = useRouter()
+  const pathname = usePathname()
   const initialized = useRef(false)
 
   useEffect(() => {
@@ -85,7 +91,14 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', userId)
           .single()
           .then(({ data: profile }) => {
-            if (profile) setProfile(profile as Profile)
+            if (profile) {
+              setProfile(profile as Profile)
+              // Redirect to user's preferred locale if different from current
+              const preferred = (profile as Profile).preferred_locale as Locale
+              if (preferred && preferred !== locale) {
+                router.replace(pathname, { locale: preferred })
+              }
+            }
           })
       }
     })

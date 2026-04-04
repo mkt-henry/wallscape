@@ -4,9 +4,9 @@ import { useEffect, useState, Suspense } from 'react'
 import { useRouter } from '@/i18n/routing'
 import { useSearchParams } from 'next/navigation'
 import { Link } from '@/i18n/routing'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import Image from 'next/image'
-import { MapPin, Camera, Users, Compass, ArrowRight, Star } from 'lucide-react'
+import { MapPin, Camera, Users, Compass, ArrowRight, Star, Globe } from 'lucide-react'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { Logo } from '@/components/ui/Logo'
@@ -61,6 +61,7 @@ type PreviewPost = {
 function LandingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const locale = useLocale()
   const { isInitialized, isLoading, user } = useAuthStore()
   const t = useTranslations('landing')
   const tc = useTranslations('common')
@@ -94,6 +95,16 @@ function LandingContent() {
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Logo size="md" showText />
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                const next = locale === 'ko' ? 'en' : 'ko'
+                router.replace('/', { locale: next })
+              }}
+              className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-white transition-colors tap-highlight-none"
+            >
+              <Globe size={16} />
+              {locale === 'ko' ? 'EN' : '한국어'}
+            </button>
             {user ? (
               <>
                 <Link

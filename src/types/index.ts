@@ -30,6 +30,7 @@ export interface Profile {
   post_count: number
   follower_count: number
   following_count: number
+  preferred_locale?: string
   created_at: string
   updated_at: string
 }
