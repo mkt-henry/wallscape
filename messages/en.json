@@ -244,6 +244,7 @@
     "imagePickerDrop": "Drop it!",
     "imagePickerReselect": "Choose another photo",
     "imagePickerCamera": "Take a photo",
+    "imagePickerCameraHint": "Capture wallpaper directly with your camera",
     "imagePickerFormats": "Only JPG, PNG, WEBP, HEIC formats supported",
     "imagePickerSize": "File size must be under 50MB",
     "imagePickerGps": "Extracting GPS...",

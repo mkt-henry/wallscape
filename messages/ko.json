@@ -244,6 +244,7 @@
     "imagePickerDrop": "놓으세요!",
     "imagePickerReselect": "사진 다시 선택",
     "imagePickerCamera": "카메라로 촬영",
+    "imagePickerCameraHint": "카메라로 벽지를 직접 촬영하세요",
     "imagePickerFormats": "JPG, PNG, WEBP, HEIC 형식만 지원됩니다",
     "imagePickerSize": "파일 크기는 50MB 이하여야 합니다",
     "imagePickerGps": "GPS 추출 중...",

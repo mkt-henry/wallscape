@@ -149,15 +149,45 @@ export function ImagePicker({ onSelect, selectedImage, preview }: ImagePickerPro
         </div>
       )}
 
-      {/* Drop zone */}
+      {/* Camera - Primary action */}
+      <button
+        onClick={() => cameraInputRef.current?.click()}
+        className={cn(
+          'relative flex flex-col items-center justify-center gap-4',
+          'w-full aspect-[4/3] rounded-3xl',
+          'bg-gradient-to-b from-surface-3 to-surface-2 border border-border',
+          'transition-all duration-200 cursor-pointer tap-highlight-none',
+          'hover:border-primary/50 hover:from-primary/10 hover:to-surface-2'
+        )}
+      >
+        <div className="w-24 h-24 rounded-full bg-primary/15 flex items-center justify-center border-2 border-primary/30">
+          <Camera size={40} className="text-primary" />
+        </div>
+
+        <div className="text-center px-6">
+          <p className="text-white font-semibold text-lg mb-1">
+            {t('imagePickerCamera')}
+          </p>
+          <p className="text-text-secondary text-sm">
+            {t('imagePickerCameraHint')}
+          </p>
+        </div>
+
+        {/* Viewfinder corners */}
+        <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-primary/40 rounded-tl-lg" />
+        <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-primary/40 rounded-tr-lg" />
+        <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-primary/40 rounded-bl-lg" />
+        <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-primary/40 rounded-br-lg" />
+      </button>
+
+      {/* Gallery - Secondary action */}
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
         className={cn(
-          'relative flex flex-col items-center justify-center gap-4',
-          'w-full aspect-square rounded-3xl border-2 border-dashed',
+          'flex items-center gap-4 w-full p-4 rounded-2xl border border-dashed',
           'transition-all duration-200 cursor-pointer tap-highlight-none',
           isDragging
             ? 'border-primary bg-primary/10'
@@ -166,43 +196,31 @@ export function ImagePicker({ onSelect, selectedImage, preview }: ImagePickerPro
       >
         <div
           className={cn(
-            'w-20 h-20 rounded-3xl flex items-center justify-center transition-colors',
+            'w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center transition-colors',
             isDragging ? 'bg-primary/20' : 'bg-surface-3'
           )}
         >
           <ImageIcon
-            size={36}
+            size={22}
             className={isDragging ? 'text-primary' : 'text-text-secondary'}
           />
         </div>
 
-        <div className="text-center px-6">
-          <p className="text-white font-semibold mb-1">
+        <div className="flex-1 min-w-0">
+          <p className="text-white font-medium text-sm">
             {t('imagePickerSelect')}
           </p>
-          <p className="text-text-secondary text-sm">
-            {t('imagePickerDrag')}
-          </p>
-          <p className="text-text-muted text-xs mt-2">
+          <p className="text-text-muted text-xs mt-0.5">
             {t('imagePickerHint', { maxSize: MAX_FILE_SIZE_MB })}
           </p>
         </div>
 
         {isDragging && (
-          <div className="absolute inset-0 rounded-3xl border-2 border-primary bg-primary/5 flex items-center justify-center">
+          <div className="absolute inset-0 rounded-2xl border-2 border-primary bg-primary/5 flex items-center justify-center">
             <p className="text-primary font-semibold">{t('imagePickerDrop')}</p>
           </div>
         )}
       </div>
-
-      {/* Camera button */}
-      <button
-        onClick={() => cameraInputRef.current?.click()}
-        className="w-full flex items-center justify-center gap-3 py-4 bg-surface-2 rounded-2xl border border-border tap-highlight-none hover:bg-surface-3 transition-colors"
-      >
-        <Camera size={22} className="text-primary" />
-        <span className="text-white font-medium">{t('imagePickerCamera')}</span>
-      </button>
 
       {/* Hidden inputs */}
       <input

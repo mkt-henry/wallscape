@@ -244,6 +244,7 @@
     "imagePickerDrop": "ドロップ！",
     "imagePickerReselect": "写真を選び直す",
     "imagePickerCamera": "カメラで撮影",
+    "imagePickerCameraHint": "カメラで壁紙を直接撮影してください",
     "imagePickerFormats": "JPG、PNG、WEBP、HEIC形式のみ対応",
     "imagePickerSize": "ファイルサイズは50MB以下にしてください",
     "imagePickerGps": "GPS抽出中...",
