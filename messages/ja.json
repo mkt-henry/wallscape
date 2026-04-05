@@ -198,7 +198,7 @@
     "distance": "距離",
     "directions": "道案内",
     "viewPost": "投稿を見る",
-    "loadError": "カカオマップの読み込みに失敗しました",
+    "loadError": "マップの読み込みに失敗しました",
     "viewOnMap": "マップで見る",
     "nearbyCount": "近くの作品 {count}件",
     "viewInFeed": "フィードで見る"

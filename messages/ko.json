@@ -198,7 +198,7 @@
     "distance": "거리",
     "directions": "길찾기",
     "viewPost": "게시물 보기",
-    "loadError": "카카오맵을 불러오지 못했습니다",
+    "loadError": "지도를 불러오지 못했습니다",
     "viewOnMap": "지도에서 보기",
     "nearbyCount": "근처 작품 {count}개",
     "viewInFeed": "피드에서 보기"

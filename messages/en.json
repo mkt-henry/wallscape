@@ -198,7 +198,7 @@
     "distance": "Distance",
     "directions": "Directions",
     "viewPost": "View Post",
-    "loadError": "Failed to load Kakao Maps",
+    "loadError": "Failed to load map",
     "viewOnMap": "View on Map",
     "nearbyCount": "{count} nearby artworks",
     "viewInFeed": "View in Feed"
