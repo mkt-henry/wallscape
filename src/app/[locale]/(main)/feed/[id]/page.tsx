@@ -34,6 +34,7 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import { Avatar } from '@/components/ui/Avatar'
 import { ActionSheet, BottomSheet } from '@/components/ui/BottomSheet'
 import { formatRelativeTime, formatNumber, formatDate, cn, getDisplayProfile, parseTagsFromString } from '@/lib/utils'
+import type { GraffitiType } from '@/types'
 
 const MiniMap = dynamic(() => import('@/components/map/MiniMap'), {
   ssr: false,
@@ -73,6 +74,7 @@ export default function PostDetailPage({ params }: Props) {
   const [editTitle, setEditTitle] = useState('')
   const [editDescription, setEditDescription] = useState('')
   const [editTagsInput, setEditTagsInput] = useState('')
+  const [editGraffitiType, setEditGraffitiType] = useState<GraffitiType>('other')
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault()
@@ -102,6 +104,7 @@ export default function PostDetailPage({ params }: Props) {
     setEditTitle(post.title || '')
     setEditDescription(post.description || '')
     setEditTagsInput((post.tags ?? []).join(', '))
+    setEditGraffitiType(post.graffiti_type || 'other')
     setShowMoreSheet(false)
     setShowEditSheet(true)
   }
@@ -114,6 +117,7 @@ export default function PostDetailPage({ params }: Props) {
         title: editTitle,
         description: editDescription,
         tags: parseTagsFromString(editTagsInput),
+        graffiti_type: editGraffitiType,
       },
       { onSuccess: () => setShowEditSheet(false) }
     )
@@ -268,6 +272,13 @@ export default function PostDetailPage({ params }: Props) {
                 <Bookmark size={22} className={cn('transition-all duration-200', post.is_bookmarked ? 'fill-primary text-primary' : 'text-white')} />
               </button>
             </div>
+
+            {/* Graffiti type badge */}
+            {post.graffiti_type && post.graffiti_type !== 'other' && (
+              <span className="inline-block bg-primary/10 border border-primary/20 text-primary text-xs font-semibold px-3 py-1 rounded-full">
+                {t(`graffitiType${post.graffiti_type.charAt(0).toUpperCase()}${post.graffiti_type.slice(1)}` as 'graffitiTypeTagging' | 'graffitiTypeBombing' | 'graffitiTypeMural' | 'graffitiTypeOther')}
+              </span>
+            )}
 
             {/* Title & description */}
             <div>
@@ -690,6 +701,28 @@ export default function PostDetailPage({ params }: Props) {
               className="input-base resize-none text-sm"
             />
             <p className="text-text-muted text-xs mt-1 text-right">{editDescription.length}/500</p>
+          </div>
+          <div>
+            <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
+              {t('graffitiType')}
+            </label>
+            <div className="flex gap-2">
+              {(['tagging', 'bombing', 'mural', 'other'] as GraffitiType[]).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setEditGraffitiType(type)}
+                  className={cn(
+                    'flex-1 py-2.5 rounded-xl text-sm font-medium transition-all tap-highlight-none border',
+                    editGraffitiType === type
+                      ? 'bg-primary/15 border-primary/40 text-primary'
+                      : 'bg-surface-2 border-transparent text-text-secondary hover:bg-surface-3'
+                  )}
+                >
+                  {t(`graffitiType${type.charAt(0).toUpperCase()}${type.slice(1)}` as 'graffitiTypeTagging' | 'graffitiTypeBombing' | 'graffitiTypeMural' | 'graffitiTypeOther')}
+                </button>
+              ))}
+            </div>
           </div>
           <div>
             <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">

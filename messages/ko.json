@@ -198,7 +198,12 @@
     "editTags": "태그",
     "editTagsPlaceholder": "태그를 쉼표로 구분하세요",
     "editSaving": "저장 중...",
-    "editSave": "저장하기"
+    "editSave": "저장하기",
+    "graffitiType": "카테고리",
+    "graffitiTypeTagging": "태깅",
+    "graffitiTypeBombing": "바밍",
+    "graffitiTypeMural": "뮤럴",
+    "graffitiTypeOther": "기타"
   },
   "map": {
     "loading": "지도 로딩 중...",
@@ -262,6 +267,11 @@
     "imagePickerHint": "JPG, PNG, WEBP, HEIC · 최대 {maxSize}MB",
     "imageConvertError": "이미지 변환 실패. 다른 이미지를 시도해주세요.",
     "noArtistResults": "검색 결과 없음",
+    "graffitiType": "카테고리",
+    "graffitiType_tagging": "태깅",
+    "graffitiType_bombing": "바밍",
+    "graffitiType_mural": "뮤럴",
+    "graffitiType_other": "기타",
     "selectedLocation": "선택된 위치",
     "searchLocationPlaceholder": "주소나 장소를 검색하세요",
     "useMyLocation": "내 위치 사용",

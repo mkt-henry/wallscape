@@ -198,7 +198,12 @@
     "editTags": "Tags",
     "editTagsPlaceholder": "Separate tags with commas",
     "editSaving": "Saving...",
-    "editSave": "Save"
+    "editSave": "Save",
+    "graffitiType": "Category",
+    "graffitiTypeTagging": "Tagging",
+    "graffitiTypeBombing": "Bombing",
+    "graffitiTypeMural": "Mural",
+    "graffitiTypeOther": "Other"
   },
   "map": {
     "loading": "Loading map...",
@@ -261,6 +266,11 @@
     "imagePickerNoLocation": "No location data",
     "imageConvertError": "Image conversion failed. Please try another image.",
     "noArtistResults": "No results found",
+    "graffitiType": "Category",
+    "graffitiType_tagging": "Tagging",
+    "graffitiType_bombing": "Bombing",
+    "graffitiType_mural": "Mural",
+    "graffitiType_other": "Other",
     "imagePickerHint": "JPG, PNG, WEBP, HEIC · Max {maxSize}MB",
     "selectedLocation": "Selected Location",
     "searchLocationPlaceholder": "Search for an address or place",

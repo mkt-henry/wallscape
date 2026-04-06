@@ -19,7 +19,7 @@ import {
   ANON_NAMES,
 } from '@/lib/utils'
 import { useVerifiedArtists } from '@/hooks/useArtists'
-import type { Location, UploadFormData } from '@/types'
+import type { Location, UploadFormData, GraffitiType } from '@/types'
 
 type UploadStep = 'image' | 'location' | 'info' | 'visibility' | 'publishing'
 
@@ -38,6 +38,7 @@ export default function UploadPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [tagsInput, setTagsInput] = useState('')
+  const [graffitiType, setGraffitiType] = useState<GraffitiType>('other')
   const [taggedArtistIds, setTaggedArtistIds] = useState<string[]>([])
   const [artistSearch, setArtistSearch] = useState('')
   const [showArtistDropdown, setShowArtistDropdown] = useState(false)
@@ -159,6 +160,7 @@ export default function UploadPage() {
           description: description.trim() || null,
           tags,
           tagged_artist_ids: taggedArtistIds,
+          graffiti_type: graffitiType,
           lat: location.lat,
           lng: location.lng,
           address: location.address || null,
@@ -344,6 +346,30 @@ export default function UploadPage() {
                 <p className="text-error text-sm">{uploadError}</p>
               </div>
             )}
+
+            {/* Graffiti type */}
+            <div>
+              <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
+                {t('graffitiType')}
+              </label>
+              <div className="flex gap-2">
+                {(['tagging', 'bombing', 'mural', 'other'] as GraffitiType[]).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setGraffitiType(type)}
+                    className={cn(
+                      'flex-1 py-2.5 rounded-xl text-sm font-medium transition-all tap-highlight-none border',
+                      graffitiType === type
+                        ? 'bg-primary/15 border-primary/40 text-primary'
+                        : 'bg-surface-2 border-transparent text-text-secondary hover:bg-surface-3'
+                    )}
+                  >
+                    {t(`graffitiType_${type}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Title */}
             <div>

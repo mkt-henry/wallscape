@@ -15,7 +15,7 @@ const POST_SELECT = `
   lat, lng, address, city, district,
   like_count, comment_count, bookmark_count, view_count,
   visibility, show_in_profile, show_in_feed, show_in_map,
-  photo_taken_at, still_there_count, gone_count, last_confirmed_at, last_report_status, tagged_artist_ids,
+  photo_taken_at, still_there_count, gone_count, last_confirmed_at, last_report_status, tagged_artist_ids, graffiti_type,
   created_at, updated_at,
   profiles(id, username, display_name, avatar_url),
   likes(user_id),
@@ -156,7 +156,7 @@ export function usePost(id: string) {
           lat, lng, address, city, district,
           like_count, comment_count, bookmark_count, view_count,
           visibility, show_in_profile, show_in_feed, show_in_map,
-          photo_taken_at, still_there_count, gone_count, last_confirmed_at, last_report_status, tagged_artist_ids,
+          photo_taken_at, still_there_count, gone_count, last_confirmed_at, last_report_status, tagged_artist_ids, graffiti_type,
           created_at, updated_at,
           profiles(id, username, display_name, avatar_url, bio),
           likes(user_id),
@@ -599,6 +599,7 @@ interface UpdatePostInput {
   title?: string | null
   description?: string | null
   tags?: string[]
+  graffiti_type?: string
 }
 
 export function useUpdatePost() {
@@ -606,7 +607,7 @@ export function useUpdatePost() {
   const { user } = useAuthStore()
 
   return useMutation({
-    mutationFn: async ({ postId, title, description, tags }: UpdatePostInput) => {
+    mutationFn: async ({ postId, title, description, tags, graffiti_type }: UpdatePostInput) => {
       if (!user) throw new Error('Login required')
       const supabase = getSupabaseClient()
 
@@ -616,6 +617,7 @@ export function useUpdatePost() {
           title: title?.trim() || null,
           description: description?.trim() || null,
           tags: tags ?? [],
+          graffiti_type: graffiti_type ?? 'other',
         })
         .eq('id', postId)
         .eq('user_id', user.id)

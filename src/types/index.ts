@@ -102,6 +102,7 @@ export interface GraffitiNewsWithUser extends GraffitiNews {
 
 export type PostVisibility = 'public' | 'followers' | 'private'
 export type PostStatus = 'public' | 'archived'
+export type GraffitiType = 'tagging' | 'bombing' | 'mural' | 'other'
 
 export interface Post {
   id: string
@@ -130,6 +131,7 @@ export interface Post {
   last_confirmed_at: string | null
   last_report_status: 'still_there' | 'gone' | null
   tagged_artist_ids: string[]
+  graffiti_type: GraffitiType
   status: PostStatus
   archived_at: string | null
   created_at: string
