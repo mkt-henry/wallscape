@@ -189,7 +189,16 @@
     "newsOptions": "ニュースオプション",
     "newsTitle": "グラフィティニュース",
     "pinned": "固定",
-    "statusConfirmed": "確認済み"
+    "statusConfirmed": "確認済み",
+    "editPost": "投稿を編集",
+    "editTitle": "タイトル",
+    "editTitlePlaceholder": "タイトルを入力",
+    "editDesc": "説明",
+    "editDescPlaceholder": "説明を入力",
+    "editTags": "タグ",
+    "editTagsPlaceholder": "タグをカンマで区切ってください",
+    "editSaving": "保存中...",
+    "editSave": "保存"
   },
   "map": {
     "loading": "マップ読み込み中...",

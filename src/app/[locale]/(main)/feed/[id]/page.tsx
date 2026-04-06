@@ -28,12 +28,12 @@ import {
   Pencil,
   X,
 } from 'lucide-react'
-import { usePost, useLikePost, useBookmarkPost, useComments, useAddComment, useArchivePost, useDeletePost, useReportStatus, useMyStatusReport, useUpdateArtistTags } from '@/hooks/usePosts'
+import { usePost, useLikePost, useBookmarkPost, useComments, useAddComment, useArchivePost, useDeletePost, useReportStatus, useMyStatusReport, useUpdateArtistTags, useUpdatePost } from '@/hooks/usePosts'
 import { useProfiles, useVerifiedArtists } from '@/hooks/useArtists'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Avatar } from '@/components/ui/Avatar'
-import { ActionSheet } from '@/components/ui/BottomSheet'
-import { formatRelativeTime, formatNumber, formatDate, cn, getDisplayProfile } from '@/lib/utils'
+import { ActionSheet, BottomSheet } from '@/components/ui/BottomSheet'
+import { formatRelativeTime, formatNumber, formatDate, cn, getDisplayProfile, parseTagsFromString } from '@/lib/utils'
 
 const MiniMap = dynamic(() => import('@/components/map/MiniMap'), {
   ssr: false,
@@ -64,10 +64,15 @@ export default function PostDetailPage({ params }: Props) {
   const { data: myReport } = useMyStatusReport(id)
   const { data: taggedArtists = [] } = useProfiles(post?.tagged_artist_ids ?? [])
   const { mutate: updateArtistTags, isPending: isSavingTags } = useUpdateArtistTags()
+  const { mutate: updatePost, isPending: isUpdatingPost } = useUpdatePost()
   const { data: verifiedArtists = [] } = useVerifiedArtists()
   const [editingArtists, setEditingArtists] = useState(false)
   const [artistSearch, setArtistSearch] = useState('')
   const [pendingArtistIds, setPendingArtistIds] = useState<string[]>([])
+  const [showEditSheet, setShowEditSheet] = useState(false)
+  const [editTitle, setEditTitle] = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  const [editTagsInput, setEditTagsInput] = useState('')
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,6 +95,28 @@ export default function PostDetailPage({ params }: Props) {
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(window.location.href)
     setShowMoreSheet(false)
+  }
+
+  const handleEdit = () => {
+    if (!post) return
+    setEditTitle(post.title || '')
+    setEditDescription(post.description || '')
+    setEditTagsInput((post.tags ?? []).join(', '))
+    setShowMoreSheet(false)
+    setShowEditSheet(true)
+  }
+
+  const handleSaveEdit = () => {
+    if (!post) return
+    updatePost(
+      {
+        postId: post.id,
+        title: editTitle,
+        description: editDescription,
+        tags: parseTagsFromString(editTagsInput),
+      },
+      { onSuccess: () => setShowEditSheet(false) }
+    )
   }
 
   const handleDelete = () => {
@@ -629,12 +656,74 @@ export default function PostDetailPage({ params }: Props) {
       </div>
 
       {/* ── More options ActionSheet ── */}
+      {/* ── Edit post BottomSheet ── */}
+      <BottomSheet
+        isOpen={showEditSheet}
+        onClose={() => setShowEditSheet(false)}
+        title={t('editPost')}
+      >
+        <div className="px-4 pb-safe-bottom pb-6 space-y-4">
+          <div>
+            <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
+              {t('editTitle')}
+            </label>
+            <input
+              type="text"
+              placeholder={t('editTitlePlaceholder')}
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              maxLength={60}
+              className="input-base text-sm"
+            />
+            <p className="text-text-muted text-xs mt-1 text-right">{editTitle.length}/60</p>
+          </div>
+          <div>
+            <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
+              {t('editDesc')}
+            </label>
+            <textarea
+              placeholder={t('editDescPlaceholder')}
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              maxLength={500}
+              rows={3}
+              className="input-base resize-none text-sm"
+            />
+            <p className="text-text-muted text-xs mt-1 text-right">{editDescription.length}/500</p>
+          </div>
+          <div>
+            <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
+              {t('editTags')}
+            </label>
+            <input
+              type="text"
+              placeholder={t('editTagsPlaceholder')}
+              value={editTagsInput}
+              onChange={(e) => setEditTagsInput(e.target.value)}
+              className="input-base text-sm"
+            />
+          </div>
+          <button
+            onClick={handleSaveEdit}
+            disabled={isUpdatingPost}
+            className="w-full py-3 rounded-2xl bg-primary text-white font-semibold text-sm tap-highlight-none disabled:opacity-50 transition-opacity"
+          >
+            {isUpdatingPost ? t('editSaving') : t('editSave')}
+          </button>
+        </div>
+      </BottomSheet>
+
       {isOwnPost ? (
         <ActionSheet
           isOpen={showMoreSheet}
           onClose={() => setShowMoreSheet(false)}
           title={t('postOptions')}
           options={[
+            {
+              icon: <Pencil size={20} />,
+              label: t('editPost'),
+              onClick: handleEdit,
+            },
             {
               icon: post.visibility === 'private' ? <EyeOff size={20} /> : <Archive size={20} />,
               label: post.visibility === 'private' ? t('makePublic') : t('archive'),

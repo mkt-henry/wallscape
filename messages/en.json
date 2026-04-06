@@ -189,7 +189,16 @@
     "newsOptions": "News Options",
     "newsTitle": "Graffiti News",
     "pinned": "Pinned",
-    "statusConfirmed": "Confirmed"
+    "statusConfirmed": "Confirmed",
+    "editPost": "Edit Post",
+    "editTitle": "Title",
+    "editTitlePlaceholder": "Enter a title",
+    "editDesc": "Description",
+    "editDescPlaceholder": "Enter a description",
+    "editTags": "Tags",
+    "editTagsPlaceholder": "Separate tags with commas",
+    "editSaving": "Saving...",
+    "editSave": "Save"
   },
   "map": {
     "loading": "Loading map...",

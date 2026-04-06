@@ -592,6 +592,44 @@ export function useDeletePost() {
   })
 }
 
+// ---- Update post (title, description, tags) -----------------------
+
+interface UpdatePostInput {
+  postId: string
+  title?: string | null
+  description?: string | null
+  tags?: string[]
+}
+
+export function useUpdatePost() {
+  const queryClient = useQueryClient()
+  const { user } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async ({ postId, title, description, tags }: UpdatePostInput) => {
+      if (!user) throw new Error('Login required')
+      const supabase = getSupabaseClient()
+
+      const { error } = await supabase
+        .from('posts')
+        .update({
+          title: title?.trim() || null,
+          description: description?.trim() || null,
+          tags: tags ?? [],
+        })
+        .eq('id', postId)
+        .eq('user_id', user.id)
+
+      if (error) throw error
+      return postId
+    },
+    onSuccess: (postId) => {
+      queryClient.invalidateQueries({ queryKey: postKeys.detail(postId) })
+      queryClient.invalidateQueries({ queryKey: postKeys.all })
+    },
+  })
+}
+
 // ---- Update artist tags -------------------------------------------
 
 export function useUpdateArtistTags() {

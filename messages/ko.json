@@ -189,7 +189,16 @@
     "newsOptions": "뉴스 옵션",
     "newsTitle": "그래피티 뉴스",
     "pinned": "고정됨",
-    "statusConfirmed": "확인됨"
+    "statusConfirmed": "확인됨",
+    "editPost": "게시물 수정",
+    "editTitle": "제목",
+    "editTitlePlaceholder": "제목을 입력하세요",
+    "editDesc": "설명",
+    "editDescPlaceholder": "설명을 입력하세요",
+    "editTags": "태그",
+    "editTagsPlaceholder": "태그를 쉼표로 구분하세요",
+    "editSaving": "저장 중...",
+    "editSave": "저장하기"
   },
   "map": {
     "loading": "지도 로딩 중...",
