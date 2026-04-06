@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://wallscape.bp-studio.com/sitemap.xml
