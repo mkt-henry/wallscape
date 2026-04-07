@@ -113,7 +113,7 @@ function LandingContent() {
                 className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-white transition-colors tap-highlight-none"
               >
                 <Globe size={16} />
-                {{ ko: '한국어', en: 'EN', ja: '日本語' }[locale] ?? 'EN'}
+                {{ ko: '한국어', en: 'EN', ja: '日本語', es: 'ES', fr: 'FR' }[locale] ?? 'EN'}
               </button>
               {showLangMenu && (
                 <div className="absolute right-0 top-full mt-2 bg-surface border border-border rounded-xl py-1 shadow-lg min-w-[120px] z-50">
@@ -121,6 +121,8 @@ function LandingContent() {
                     { code: 'ko', label: '한국어' },
                     { code: 'en', label: 'English' },
                     { code: 'ja', label: '日本語' },
+                    { code: 'es', label: 'Español' },
+                    { code: 'fr', label: 'Français' },
                   ] as const).map(({ code, label }) => (
                     <button
                       key={code}
