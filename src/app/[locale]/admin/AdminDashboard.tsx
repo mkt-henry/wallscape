@@ -10,15 +10,17 @@ import {
   Users,
   UserCheck,
   Brush,
+  Newspaper,
 } from 'lucide-react'
 import FeedbackPanel from './FeedbackPanel'
 import AccountsPanel from './AccountsPanel'
 import UsersPanel from './UsersPanel'
 import ReactivationPanel from './ReactivationPanel'
 import ArtistApplicationsPanel from './ArtistApplicationsPanel'
+import NewsPanel from './NewsPanel'
 import { Logo } from '@/components/ui/Logo'
 
-type AdminTab = 'feedback' | 'accounts' | 'users' | 'reactivation' | 'artists'
+type AdminTab = 'feedback' | 'accounts' | 'users' | 'reactivation' | 'artists' | 'news'
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState<AdminTab>('feedback')
@@ -103,6 +105,17 @@ export default function AdminDashboard() {
                 <Brush size={13} />
                 <span className="hidden xs:inline">{t('artistAppsTab')}</span>
               </button>
+              <button
+                onClick={() => setTab('news')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all tap-highlight-none ${
+                  tab === 'news'
+                    ? 'bg-primary text-white'
+                    : 'text-text-secondary hover:text-white'
+                }`}
+              >
+                <Newspaper size={13} />
+                <span className="hidden xs:inline">{t('newsTab')}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -113,6 +126,7 @@ export default function AdminDashboard() {
       {tab === 'users' && <UsersPanel />}
       {tab === 'reactivation' && <ReactivationPanel />}
       {tab === 'artists' && <ArtistApplicationsPanel />}
+      {tab === 'news' && <NewsPanel />}
     </div>
   )
 }
