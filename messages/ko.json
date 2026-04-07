@@ -444,7 +444,8 @@
     "newsWriteTitle": "뉴스 작성",
     "newsTitlePlaceholder": "뉴스 제목을 입력하세요",
     "newsContentPlaceholder": "뉴스 내용을 입력하세요...",
-    "adminOnly": "관리자만 작성할 수 있습니다"
+    "adminOnly": "관리자만 작성할 수 있습니다",
+    "readOriginal": "원문 보기"
   },
   "feedback": {
     "typeFeedback": "피드백",

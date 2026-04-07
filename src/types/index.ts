@@ -88,6 +88,10 @@ export interface GraffitiNews {
   title: string
   content: string
   thumbnail_url: string | null
+  source_url: string | null
+  source: string | null
+  is_auto: boolean
+  published_at: string | null
   view_count: number
   is_pinned: boolean
   created_at: string

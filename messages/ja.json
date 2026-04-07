@@ -444,7 +444,8 @@
     "newsWriteTitle": "ニュース作成",
     "newsTitlePlaceholder": "ニュースタイトルを入力してください",
     "newsContentPlaceholder": "ニュース内容を入力してください...",
-    "adminOnly": "管理者のみ作成可能"
+    "adminOnly": "管理者のみ作成可能",
+    "readOriginal": "原文を読む"
   },
   "feedback": {
     "typeFeedback": "フィードバック",

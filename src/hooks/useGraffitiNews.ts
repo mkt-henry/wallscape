@@ -12,6 +12,7 @@ import type { GraffitiNews } from '@/types'
 
 const NEWS_SELECT = `
   id, user_id, title, content, thumbnail_url,
+  source_url, source, is_auto, published_at,
   view_count, is_pinned, created_at, updated_at
 `
 

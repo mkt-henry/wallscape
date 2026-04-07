@@ -444,7 +444,8 @@
     "newsWriteTitle": "Write News",
     "newsTitlePlaceholder": "Enter news title",
     "newsContentPlaceholder": "Enter news content...",
-    "adminOnly": "Only admins can write"
+    "adminOnly": "Only admins can write",
+    "readOriginal": "Read original"
   },
   "feedback": {
     "typeFeedback": "Feedback",

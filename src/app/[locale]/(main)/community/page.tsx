@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import { Link } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
-import { Plus, MessageSquare, Eye, Heart, Pin, Newspaper } from 'lucide-react'
+import { Plus, MessageSquare, Eye, Heart, Pin, Newspaper, ExternalLink } from 'lucide-react'
 import { useBoardPosts } from '@/hooks/useCommunity'
 import { useGraffitiNewsList } from '@/hooks/useGraffitiNews'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -127,6 +127,12 @@ function AllList() {
                   <Newspaper size={10} />
                   {t('news')}
                 </span>
+                {news.source && (
+                  <span className="shrink-0 px-2 py-0.5 rounded-md bg-surface-2 text-text-muted text-xs font-medium flex items-center gap-1">
+                    <ExternalLink size={10} />
+                    {news.source}
+                  </span>
+                )}
                 <h3 className="text-white font-semibold text-sm leading-snug line-clamp-2 flex-1">
                   {news.title}
                 </h3>
@@ -355,6 +361,12 @@ function NewsList() {
               <h3 className="text-white font-semibold text-sm leading-snug line-clamp-2 mb-2">
                 {news.title}
               </h3>
+              {news.source && (
+                <div className="flex items-center gap-1 text-text-muted text-xs mb-1">
+                  <ExternalLink size={10} />
+                  {news.source}
+                </div>
+              )}
               <p className="text-text-secondary text-sm line-clamp-2 mb-3 leading-relaxed">
                 {news.content}
               </p>

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
-import { ArrowLeft, Eye, MoreHorizontal, Trash2, Pin } from 'lucide-react'
+import { ArrowLeft, Eye, MoreHorizontal, Trash2, Pin, ExternalLink } from 'lucide-react'
 import { useGraffitiNews, useDeleteGraffitiNews } from '@/hooks/useGraffitiNews'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { ActionSheet } from '@/components/ui/BottomSheet'
@@ -20,6 +20,7 @@ export default function GraffitiNewsDetailPage({ params }: Props) {
   const router = useRouter()
   const t = useTranslations('post')
   const tc = useTranslations('common')
+  const tcom = useTranslations('community')
   const { user } = useAuthStore()
   const [showMoreSheet, setShowMoreSheet] = useState(false)
 
@@ -123,6 +124,24 @@ export default function GraffitiNewsDetailPage({ params }: Props) {
         <div className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap break-words">
           {news.content}
         </div>
+
+        {/* Source link */}
+        {news.source_url && (
+          <a
+            href={news.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-surface hover:bg-surface-2 transition-colors tap-highlight-none"
+          >
+            <ExternalLink size={16} className="text-primary" />
+            <span className="text-primary text-sm font-medium">
+              {tcom('readOriginal')}
+            </span>
+            {news.source && (
+              <span className="text-text-muted text-xs">— {news.source}</span>
+            )}
+          </a>
+        )}
       </div>
 
       {/* Admin ActionSheet */}
