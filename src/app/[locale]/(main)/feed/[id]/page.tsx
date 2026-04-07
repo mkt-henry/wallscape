@@ -28,13 +28,13 @@ import {
   Pencil,
   X,
 } from 'lucide-react'
-import { usePost, useLikePost, useBookmarkPost, useComments, useAddComment, useArchivePost, useDeletePost, useReportStatus, useMyStatusReport, useUpdateArtistTags, useUpdatePost } from '@/hooks/usePosts'
+import { usePost, useLikePost, useBookmarkPost, useComments, useAddComment, useArchivePost, useDeletePost, useReportStatus, useMyStatusReport, useUpdateArtistTags } from '@/hooks/usePosts'
+import { PostEditModal } from '@/components/feed/PostEditModal'
 import { useProfiles, useVerifiedArtists } from '@/hooks/useArtists'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Avatar } from '@/components/ui/Avatar'
-import { ActionSheet, BottomSheet } from '@/components/ui/BottomSheet'
-import { formatRelativeTime, formatNumber, formatDate, cn, getDisplayProfile, parseTagsFromString } from '@/lib/utils'
-import type { GraffitiType } from '@/types'
+import { ActionSheet } from '@/components/ui/BottomSheet'
+import { formatRelativeTime, formatNumber, formatDate, cn, getDisplayProfile } from '@/lib/utils'
 
 const MiniMap = dynamic(() => import('@/components/map/MiniMap'), {
   ssr: false,
@@ -53,6 +53,7 @@ export default function PostDetailPage({ params }: Props) {
   const { user } = useAuthStore()
   const [comment, setComment] = useState('')
   const [showMoreSheet, setShowMoreSheet] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
 
   const { data: post, isLoading } = usePost(id)
   const { data: comments = [], isLoading: isCommentsLoading } = useComments(id)
@@ -65,16 +66,10 @@ export default function PostDetailPage({ params }: Props) {
   const { data: myReport } = useMyStatusReport(id)
   const { data: taggedArtists = [] } = useProfiles(post?.tagged_artist_ids ?? [])
   const { mutate: updateArtistTags, isPending: isSavingTags } = useUpdateArtistTags()
-  const { mutate: updatePost, isPending: isUpdatingPost } = useUpdatePost()
   const { data: verifiedArtists = [] } = useVerifiedArtists()
   const [editingArtists, setEditingArtists] = useState(false)
   const [artistSearch, setArtistSearch] = useState('')
   const [pendingArtistIds, setPendingArtistIds] = useState<string[]>([])
-  const [showEditSheet, setShowEditSheet] = useState(false)
-  const [editTitle, setEditTitle] = useState('')
-  const [editDescription, setEditDescription] = useState('')
-  const [editTagsInput, setEditTagsInput] = useState('')
-  const [editGraffitiType, setEditGraffitiType] = useState<GraffitiType>('other')
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault()
@@ -97,30 +92,6 @@ export default function PostDetailPage({ params }: Props) {
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(window.location.href)
     setShowMoreSheet(false)
-  }
-
-  const handleEdit = () => {
-    if (!post) return
-    setEditTitle(post.title || '')
-    setEditDescription(post.description || '')
-    setEditTagsInput((post.tags ?? []).join(', '))
-    setEditGraffitiType(post.graffiti_type || 'other')
-    setShowMoreSheet(false)
-    setShowEditSheet(true)
-  }
-
-  const handleSaveEdit = () => {
-    if (!post) return
-    updatePost(
-      {
-        postId: post.id,
-        title: editTitle,
-        description: editDescription,
-        tags: parseTagsFromString(editTagsInput),
-        graffiti_type: editGraffitiType,
-      },
-      { onSuccess: () => setShowEditSheet(false) }
-    )
   }
 
   const handleDelete = () => {
@@ -272,13 +243,6 @@ export default function PostDetailPage({ params }: Props) {
                 <Bookmark size={22} className={cn('transition-all duration-200', post.is_bookmarked ? 'fill-primary text-primary' : 'text-white')} />
               </button>
             </div>
-
-            {/* Graffiti type badge */}
-            {post.graffiti_type && post.graffiti_type !== 'other' && (
-              <span className="inline-block bg-primary/10 border border-primary/20 text-primary text-xs font-semibold px-3 py-1 rounded-full">
-                {t(`graffitiType${post.graffiti_type.charAt(0).toUpperCase()}${post.graffiti_type.slice(1)}` as 'graffitiTypeTagging' | 'graffitiTypeBombing' | 'graffitiTypeMural' | 'graffitiTypeOther')}
-              </span>
-            )}
 
             {/* Title & description */}
             <div>
@@ -667,85 +631,6 @@ export default function PostDetailPage({ params }: Props) {
       </div>
 
       {/* ── More options ActionSheet ── */}
-      {/* ── Edit post BottomSheet ── */}
-      <BottomSheet
-        isOpen={showEditSheet}
-        onClose={() => setShowEditSheet(false)}
-        title={t('editPost')}
-      >
-        <div className="px-4 pb-safe-bottom pb-6 space-y-4">
-          <div>
-            <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
-              {t('editTitle')}
-            </label>
-            <input
-              type="text"
-              placeholder={t('editTitlePlaceholder')}
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              maxLength={60}
-              className="input-base text-sm"
-            />
-            <p className="text-text-muted text-xs mt-1 text-right">{editTitle.length}/60</p>
-          </div>
-          <div>
-            <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
-              {t('editDesc')}
-            </label>
-            <textarea
-              placeholder={t('editDescPlaceholder')}
-              value={editDescription}
-              onChange={(e) => setEditDescription(e.target.value)}
-              maxLength={500}
-              rows={3}
-              className="input-base resize-none text-sm"
-            />
-            <p className="text-text-muted text-xs mt-1 text-right">{editDescription.length}/500</p>
-          </div>
-          <div>
-            <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
-              {t('graffitiType')}
-            </label>
-            <div className="flex gap-2">
-              {(['tagging', 'bombing', 'mural', 'other'] as GraffitiType[]).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setEditGraffitiType(type)}
-                  className={cn(
-                    'flex-1 py-2.5 rounded-xl text-sm font-medium transition-all tap-highlight-none border',
-                    editGraffitiType === type
-                      ? 'bg-primary/15 border-primary/40 text-primary'
-                      : 'bg-surface-2 border-transparent text-text-secondary hover:bg-surface-3'
-                  )}
-                >
-                  {t(`graffitiType${type.charAt(0).toUpperCase()}${type.slice(1)}` as 'graffitiTypeTagging' | 'graffitiTypeBombing' | 'graffitiTypeMural' | 'graffitiTypeOther')}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="text-text-secondary text-xs font-medium uppercase tracking-wide mb-2 block">
-              {t('editTags')}
-            </label>
-            <input
-              type="text"
-              placeholder={t('editTagsPlaceholder')}
-              value={editTagsInput}
-              onChange={(e) => setEditTagsInput(e.target.value)}
-              className="input-base text-sm"
-            />
-          </div>
-          <button
-            onClick={handleSaveEdit}
-            disabled={isUpdatingPost}
-            className="w-full py-3 rounded-2xl bg-primary text-white font-semibold text-sm tap-highlight-none disabled:opacity-50 transition-opacity"
-          >
-            {isUpdatingPost ? t('editSaving') : t('editSave')}
-          </button>
-        </div>
-      </BottomSheet>
-
       {isOwnPost ? (
         <ActionSheet
           isOpen={showMoreSheet}
@@ -754,8 +639,8 @@ export default function PostDetailPage({ params }: Props) {
           options={[
             {
               icon: <Pencil size={20} />,
-              label: t('editPost'),
-              onClick: handleEdit,
+              label: '수정',
+              onClick: () => { setShowMoreSheet(false); setShowEditModal(true) },
             },
             {
               icon: post.visibility === 'private' ? <EyeOff size={20} /> : <Archive size={20} />,
@@ -797,6 +682,11 @@ export default function PostDetailPage({ params }: Props) {
             },
           ]}
         />
+      )}
+
+      {/* Post edit modal */}
+      {showEditModal && post && (
+        <PostEditModal post={post} onClose={() => setShowEditModal(false)} />
       )}
     </div>
   )

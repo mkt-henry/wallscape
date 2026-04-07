@@ -122,7 +122,7 @@ export default function SettingsPage() {
         {
           icon: <Globe size={20} />,
           label: t('language'),
-          value: { ko: t('korean'), en: t('english'), ja: t('japanese') }[locale] ?? t('korean'),
+          value: { ko: t('korean'), en: t('english'), ja: t('japanese'), es: t('spanish'), fr: t('french') }[locale] ?? t('korean'),
           action: () => setShowLanguageSheet(true),
         },
       ],
@@ -285,6 +285,8 @@ export default function SettingsPage() {
             { code: 'ko', label: t('korean') },
             { code: 'en', label: t('english') },
             { code: 'ja', label: t('japanese') },
+            { code: 'es', label: t('spanish') },
+            { code: 'fr', label: t('french') },
           ] as const).map(({ code, label }) => (
             <button
               key={code}

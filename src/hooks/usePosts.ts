@@ -15,7 +15,7 @@ const POST_SELECT = `
   lat, lng, address, city, district,
   like_count, comment_count, bookmark_count, view_count,
   visibility, show_in_profile, show_in_feed, show_in_map,
-  photo_taken_at, still_there_count, gone_count, last_confirmed_at, last_report_status, tagged_artist_ids, graffiti_type,
+  photo_taken_at, still_there_count, gone_count, last_confirmed_at, last_report_status, tagged_artist_ids, category,
   created_at, updated_at,
   profiles(id, username, display_name, avatar_url),
   likes(user_id),
@@ -156,7 +156,7 @@ export function usePost(id: string) {
           lat, lng, address, city, district,
           like_count, comment_count, bookmark_count, view_count,
           visibility, show_in_profile, show_in_feed, show_in_map,
-          photo_taken_at, still_there_count, gone_count, last_confirmed_at, last_report_status, tagged_artist_ids, graffiti_type,
+          photo_taken_at, still_there_count, gone_count, last_confirmed_at, last_report_status, tagged_artist_ids,
           created_at, updated_at,
           profiles(id, username, display_name, avatar_url, bio),
           likes(user_id),
@@ -592,37 +592,33 @@ export function useDeletePost() {
   })
 }
 
-// ---- Update post (title, description, tags) -----------------------
-
-interface UpdatePostInput {
-  postId: string
-  title?: string | null
-  description?: string | null
-  tags?: string[]
-  graffiti_type?: string
-}
+// ---- Update post (own) ----------------------------------------
 
 export function useUpdatePost() {
   const queryClient = useQueryClient()
-  const { user } = useAuthStore()
-
   return useMutation({
-    mutationFn: async ({ postId, title, description, tags, graffiti_type }: UpdatePostInput) => {
-      if (!user) throw new Error('Login required')
-      const supabase = getSupabaseClient()
-
-      const { error } = await supabase
-        .from('posts')
-        .update({
-          title: title?.trim() || null,
-          description: description?.trim() || null,
-          tags: tags ?? [],
-          graffiti_type: graffiti_type ?? 'other',
-        })
-        .eq('id', postId)
-        .eq('user_id', user.id)
-
-      if (error) throw error
+    mutationFn: async ({
+      postId,
+      title,
+      description,
+      tags,
+      category,
+    }: {
+      postId: string
+      title: string
+      description: string
+      tags: string[]
+      category: string | null
+    }) => {
+      const res = await fetch(`/api/posts/${postId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, tags, category }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || '수정에 실패했습니다.')
+      }
       return postId
     },
     onSuccess: (postId) => {

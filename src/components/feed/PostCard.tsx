@@ -137,6 +137,15 @@ export function PostCard({ post, showLocation = true, priority = false }: PostCa
             />
           )}
 
+          {/* Category badge */}
+          {post.category && (
+            <div className="absolute top-3 left-3 pointer-events-none">
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-black/50 text-white backdrop-blur-sm">
+                {post.category}
+              </span>
+            </div>
+          )}
+
           {/* Double tap heart animation */}
           {showHeartAnim && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
