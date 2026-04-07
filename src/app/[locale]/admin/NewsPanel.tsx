@@ -11,6 +11,7 @@ import {
   Eye,
   ExternalLink,
   Pin,
+  Download,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -36,6 +37,8 @@ export default function NewsPanel() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isFetching, setIsFetching] = useState(false)
+  const [fetchResult, setFetchResult] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -115,6 +118,27 @@ export default function NewsPanel() {
     }
   }
 
+  const handleFetchNews = async () => {
+    setIsFetching(true)
+    setFetchResult(null)
+    try {
+      const res = await fetch('/api/admin/fetch-news', { method: 'POST' })
+      const data = await res.json()
+      if (data.error) {
+        setFetchResult(`오류: ${data.error}`)
+      } else if (data.inserted === 0) {
+        setFetchResult(data.message || '새로운 뉴스가 없습니다')
+      } else {
+        setFetchResult(`${data.inserted}건의 뉴스를 가져왔습니다`)
+        refetch()
+      }
+    } catch {
+      setFetchResult('요청 실패')
+    } finally {
+      setIsFetching(false)
+    }
+  }
+
   const handleDelete = (id: string) => {
     deleteNews(id, { onSuccess: () => setDeleteConfirm(null) })
   }
@@ -141,6 +165,15 @@ export default function NewsPanel() {
           </Button>
           <Button
             size="sm"
+            onClick={handleFetchNews}
+            disabled={isFetching}
+            className="bg-blue-600 text-white disabled:opacity-50"
+          >
+            <Download size={14} />
+            <span className="ml-1">{isFetching ? '수집 중...' : '뉴스 수집'}</span>
+          </Button>
+          <Button
+            size="sm"
             onClick={() => setShowForm(!showForm)}
             className="bg-primary text-white"
           >
@@ -149,6 +182,16 @@ export default function NewsPanel() {
           </Button>
         </div>
       </div>
+
+      {/* Fetch Result */}
+      {fetchResult && (
+        <div className="px-4 py-3 rounded-xl bg-surface text-sm text-text-secondary flex items-center justify-between">
+          <span>{fetchResult}</span>
+          <button onClick={() => setFetchResult(null)} className="text-text-muted tap-highlight-none">
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* Write Form */}
       {showForm && (
