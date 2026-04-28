@@ -47,9 +47,8 @@ BEGIN
     RETURN;
   END IF;
   PERFORM net.http_post(
-    url     := url,
-    body    := jsonb_build_object('embeds', jsonb_build_array(embed))::text,
-    headers := '{"Content-Type":"application/json"}'::jsonb
+    url  := url,
+    body := jsonb_build_object('embeds', jsonb_build_array(embed))
   );
 END;
 $$;
