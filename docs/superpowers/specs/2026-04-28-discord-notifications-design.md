@@ -83,9 +83,9 @@ POST /api/webhooks/discord-notify  (Next.js Route Handler, Node runtime)
 | `feedback` | FEEDBACK | 0xeab308 (황) | 📩 피드백 | `${APP_URL}/ko/admin/feedback` |
 
 ### `posts` 임베드
-- `title`: `🎨 새 그래피티 — {posts.title || '(제목 없음)'}`
+- `title`: `🎨 새 그래피티 — {posts.title}` (posts.title은 NOT NULL)
 - `description`: `posts.description` 발췌 200자 (없으면 `(내용 없음)`)
-- `author.name`: profiles.nickname
+- `author.name`: `profiles.display_name || profiles.username`
 - `author.icon_url`: profiles.avatar_url
 - `image.url`: `posts.image_url`
 - `fields`:
@@ -97,15 +97,15 @@ POST /api/webhooks/discord-notify  (Next.js Route Handler, Node runtime)
 ### `board_posts` 임베드
 - `title`: `💬 커뮤니티 — {board_posts.title}`
 - `description`: `board_posts.content` 발췌 200자
-- `author`: profiles.nickname / avatar_url
-- `image.url`: 014 마이그레이션이 추가한 이미지 컬럼이 있으면 매핑 (구현 시 컬럼명 확정)
+- `author`: `profiles.display_name || profiles.username` / `avatar_url`
+- `image.url`: `board_posts.image_url` (014 마이그레이션, nullable)
 - `fields`: 카테고리(`board_posts.category`)
 - `timestamp`: `board_posts.created_at`
 
 ### `artist_applications` 임베드
 - `title`: `🎤 아티스트 신청 — {artist_name}`
 - `description`: `note || bio` 발췌 200자
-- `author`: profiles.nickname / avatar_url (신청한 user_id 기준)
+- `author`: `profiles.display_name || profiles.username` / `avatar_url` (신청한 user_id 기준)
 - `fields`:
   - 등록 유형: `registration_type` (self/other)
   - 대상 유저명: `target_username` (registration_type = 'other' 일 때)
@@ -129,7 +129,7 @@ POST /api/webhooks/discord-notify  (Next.js Route Handler, Node runtime)
 ## 5. 보안
 
 - **시크릿 검증**: `x-webhook-secret` 헤더와 `SUPABASE_WEBHOOK_SECRET` env 비교. 불일치 시 401.
-- **Service role 키 격리**: profiles 조회는 `src/lib/supabase/admin.ts` 신규 헬퍼에서만 사용. 클라이언트 노출 금지.
+- **Service role 키 격리**: profiles 조회는 기존 `src/lib/supabase/server.ts`의 `createAdminClient()`를 재사용. 클라이언트 노출 금지.
 - **Discord webhook URL 비공개**: `DISCORD_WEBHOOK_MAIN`, `DISCORD_WEBHOOK_FEEDBACK` 둘 다 `NEXT_PUBLIC_` 접두사 금지.
 - **페이로드 화이트리스트**: `body.type === 'INSERT'` && `body.table ∈ {posts, board_posts, artist_applications, feedback}` 외에는 200 no-op (재시도 트리거 안 함).
 
@@ -163,13 +163,11 @@ POST /api/webhooks/discord-notify  (Next.js Route Handler, Node runtime)
 src/
 ├─ app/api/webhooks/discord-notify/
 │  └─ route.ts                # POST 핸들러
-├─ lib/
-│  ├─ discord/
-│  │  ├─ embed.ts             # 4종 embed 빌더, truncate, routeWebhook
-│  │  ├─ send.ts              # Discord webhook fetch (타임아웃, 에러)
-│  │  └─ types.ts             # SupabaseWebhookPayload, EmbedTable 등
-│  └─ supabase/
-│     └─ admin.ts             # service role 클라이언트
+└─ lib/
+   └─ discord/
+      ├─ embed.ts             # 4종 embed 빌더, truncate, routeWebhook
+      ├─ send.ts              # Discord webhook fetch (타임아웃, 에러)
+      └─ types.ts             # SupabaseWebhookPayload, EmbedTable 등
 fixtures/
 └─ discord-webhook/
    ├─ posts-insert.json
