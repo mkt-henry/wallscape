@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  width: 1200px;
+  height: 675px;
+  background: #080808;
+  font-family: 'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', -apple-system, sans-serif;
+  overflow: hidden;
+  position: relative;
+  color: white;
+}
+
+.blob { position: absolute; border-radius: 50%; filter: blur(100px); pointer-events: none; }
+.b1 { width: 600px; height: 600px; background: #6d28d9; opacity: 0.3; top: -250px; right: 200px; }
+.b2 { width: 400px; height: 400px; background: #db2777; opacity: 0.22; bottom: -180px; left: -80px; }
+.b3 { width: 200px; height: 200px; background: #0e7490; opacity: 0.2; top: 300px; right: 0; }
+
+.grid-bg {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.main {
+  position: relative; width: 100%; height: 100%;
+  display: grid;
+  grid-template-columns: 380px 1fr 1fr;
+  gap: 0;
+}
+
+.left {
+  padding: 52px 40px 52px 56px;
+  display: flex; flex-direction: column; justify-content: center; gap: 22px;
+  border-right: 1px solid rgba(255,255,255,0.07);
+  position: relative; z-index: 2;
+}
+
+.logo-row { display: flex; align-items: center; gap: 12px; }
+.logo-row img { width: 44px; height: 44px; border-radius: 10px; }
+.wordmark { font-size: 17px; font-weight: 900; letter-spacing: 0.22em; color: rgba(255,255,255,0.9); font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 16px;
+  background: rgba(217,70,239,0.13); border: 1.5px solid rgba(217,70,239,0.4);
+  border-radius: 100px; font-size: 12px; font-weight: 600; color: #e879f9; width: fit-content;
+}
+.badge::before { content: ''; width: 6px; height: 6px; background: #e879f9; border-radius: 50%; }
+
+h1 {
+  font-size: 44px; font-weight: 900;
+  line-height: 1.2; letter-spacing: -0.01em; color: white;
+}
+h1 em {
+  font-style: normal;
+  background: linear-gradient(125deg, #e879f9 0%, #a855f7 50%, #818cf8 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.sub { font-size: 15px; color: rgba(255,255,255,0.42); font-weight: 400; letter-spacing: 0.08em; }
+
+.cta {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 30px;
+  background: linear-gradient(135deg, #d946ef 0%, #7c3aed 100%);
+  border-radius: 100px; font-size: 16px; font-weight: 700; color: white;
+  width: fit-content;
+  box-shadow: 0 8px 28px rgba(124,58,237,0.4);
+}
+
+.handle { font-size: 13px; color: rgba(255,255,255,0.28); letter-spacing: 0.06em; font-family: -apple-system, sans-serif; }
+
+.center { padding: 30px 16px 30px 30px; display: flex; align-items: center; justify-content: center; position: relative; }
+.right-col { padding: 30px 30px 30px 16px; display: flex; align-items: center; justify-content: center; position: relative; }
+
+.phone {
+  width: 216px; height: 440px; background: #111117;
+  border-radius: 30px; border: 2px solid rgba(255,255,255,0.1);
+  overflow: hidden; position: relative;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+
+.phone-glow-f { position: absolute; width: 120px; height: 120px; background: #7c3aed; border-radius: 50%; filter: blur(50px); opacity: 0.4; bottom: -40px; left: 50%; transform: translateX(-50%); }
+.phone-glow-m { position: absolute; width: 120px; height: 120px; background: #0284c7; border-radius: 50%; filter: blur(50px); opacity: 0.35; bottom: -40px; left: 50%; transform: translateX(-50%); }
+
+.notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 70px; height: 18px; background: #111117; border-radius: 0 0 10px 10px; z-index: 20; }
+
+.app-bar { padding: 26px 10px 8px; background: #0c0c0c; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.app-title { font-size: 10px; font-weight: 800; letter-spacing: 0.18em; color: white; font-family: -apple-system, sans-serif; }
+.app-icons { display: flex; gap: 10px; }
+.app-icon-sm { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.25); }
+
+.tabs { display: flex; gap: 3px; padding: 6px 10px 4px; background: #0c0c0c; }
+.tab { padding: 4px 8px; border-radius: 14px; font-size: 7.5px; font-weight: 600; color: rgba(255,255,255,0.38); }
+.tab.on { background: #d946ef; color: white; }
+
+.feed { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5px; background: #1a1a1a; }
+.post { position: relative; overflow: hidden; height: 94px; }
+.post::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.5), transparent 50%); }
+
+.p1 { background: linear-gradient(145deg, #3b0764, #312e81); }
+.p2 { background: linear-gradient(145deg, #7c2d12, #b45309); }
+.p3 { background: linear-gradient(145deg, #064e3b, #0f766e); }
+.p4 { background: linear-gradient(145deg, #1e3a5f, #4338ca); }
+.p5 { background: linear-gradient(145deg, #4a044e, #6d28d9); }
+.p6 { background: linear-gradient(145deg, #7f1d1d, #b91c1c); }
+
+.p1::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 60%, rgba(168,85,247,0.6), transparent 65%); }
+.p2::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 30%, rgba(249,115,22,0.7), transparent 65%); }
+.p3::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.6), transparent 65%); }
+.p4::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 20% 70%, rgba(59,130,246,0.7), transparent 65%); }
+.p5::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 80% 20%, rgba(236,72,153,0.7), transparent 65%); }
+.p6::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(245,158,11,0.6), transparent 65%); }
+
+.post-foot { position: absolute; bottom: 4px; left: 6px; z-index: 10; display: flex; align-items: center; gap: 4px; }
+.av { width: 14px; height: 14px; border-radius: 50%; background: rgba(255,255,255,0.3); font-size: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.meta { font-size: 7px; color: rgba(255,255,255,0.7); }
+.loc-sm { position: absolute; top: 6px; left: 6px; z-index: 10; background: rgba(0,0,0,0.5); border-radius: 100px; padding: 2px 5px; font-size: 6px; color: rgba(255,255,255,0.8); }
+
+.app-nav { position: absolute; bottom: 0; left: 0; right: 0; background: #0c0c0c; border-top: 1px solid rgba(255,255,255,0.07); display: flex; justify-content: space-around; padding: 6px 0 12px; }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 6px; color: rgba(255,255,255,0.35); }
+.nav-item.on { color: #d946ef; }
+.nav-dot { width: 18px; height: 18px; border-radius: 5px; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 10px; }
+.nav-item.on .nav-dot { background: rgba(217,70,239,0.2); }
+
+.map-container { flex: 1; position: relative; overflow: hidden; background: #1a2234; }
+</style>
+</head>
+<body>
+
+<div class="blob b1"></div>
+<div class="blob b2"></div>
+<div class="blob b3"></div>
+<div class="grid-bg"></div>
+
+<div class="main">
+
+  <!-- LEFT -->
+  <div class="left">
+    <div class="logo-row">
+      <img src="../logo.png" alt="Wallscape">
+      <span class="wordmark">WALLSCAPE</span>
+    </div>
+
+    <div class="badge">ストリートアートSNS</div>
+
+    <h1>街の<em>アート</em>を、<br>発見しよう。</h1>
+
+    <p class="sub">見つける。撮る。シェアする。</p>
+
+    <div class="cta">無料で始める →</div>
+
+    <p class="handle">@wallscape</p>
+  </div>
+
+  <!-- CENTER: Feed phone -->
+  <div class="center">
+    <div style="position:relative">
+      <div class="phone-glow-f"></div>
+      <div class="phone">
+        <img src="./ss-feed.png" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;">
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Map phone -->
+  <div class="right-col">
+    <div style="position:relative">
+      <div class="phone-glow-m"></div>
+      <div class="phone">
+        <img src="./ss-map.png" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;">
+
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

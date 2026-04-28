@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  width: 1080px;
+  height: 1080px;
+  background: #080808;
+  font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  overflow: hidden;
+  position: relative;
+  color: white;
+}
+
+/* Background blobs */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+}
+.b1 { width: 700px; height: 700px; background: #6d28d9; opacity: 0.28; top: -280px; right: -180px; }
+.b2 { width: 500px; height: 500px; background: #db2777; opacity: 0.22; bottom: -180px; left: -120px; }
+.b3 { width: 250px; height: 250px; background: #0e7490; opacity: 0.2; top: 480px; left: 360px; }
+
+/* Subtle grid */
+.grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 72px 72px;
+  pointer-events: none;
+}
+
+/* SVG spray decoration top-left */
+.deco-tl {
+  position: absolute;
+  top: 40px; left: 40px;
+  opacity: 0.18;
+  pointer-events: none;
+}
+.deco-br {
+  position: absolute;
+  bottom: 30px; right: 30px;
+  opacity: 0.12;
+  pointer-events: none;
+  transform: rotate(180deg);
+}
+
+/* Main layout */
+.main {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  padding: 80px 70px 80px 90px;
+  gap: 50px;
+  align-items: center;
+}
+
+/* ── Left ── */
+.left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.logo-row img {
+  width: 54px; height: 54px;
+  border-radius: 12px;
+}
+.wordmark {
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  color: rgba(255,255,255,0.92);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 22px;
+  background: rgba(217,70,239,0.14);
+  border: 1.5px solid rgba(217,70,239,0.45);
+  border-radius: 100px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #e879f9;
+  width: fit-content;
+  letter-spacing: 0.04em;
+}
+.badge::before {
+  content: '';
+  width: 7px; height: 7px;
+  background: #e879f9;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+h1 {
+  font-size: 80px;
+  font-weight: 900;
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  color: white;
+}
+h1 em {
+  font-style: normal;
+  background: linear-gradient(125deg, #e879f9 0%, #a855f7 45%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sub {
+  font-size: 26px;
+  color: rgba(255,255,255,0.45);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 44px;
+  background: linear-gradient(135deg, #d946ef 0%, #7c3aed 100%);
+  border-radius: 100px;
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  width: fit-content;
+  letter-spacing: 0.02em;
+  box-shadow: 0 12px 40px rgba(124,58,237,0.45);
+}
+
+.handle {
+  font-size: 18px;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.06em;
+  margin-top: 4px;
+}
+
+/* ── Right: Phone ── */
+.right {
+  width: 310px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.phone-glow {
+  position: absolute;
+  width: 200px; height: 200px;
+  background: #7c3aed;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.phone {
+  width: 300px;
+  height: 600px;
+  background: #111117;
+  border-radius: 38px;
+  border: 2px solid rgba(255,255,255,0.1);
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    0 60px 120px rgba(0,0,0,0.65),
+    0 0 0 1px rgba(255,255,255,0.04),
+    inset 0 1px 0 rgba(255,255,255,0.07);
+}
+
+/* Notch */
+.notch {
+  position: absolute; top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 90px; height: 24px;
+  background: #111117;
+  border-radius: 0 0 14px 14px;
+  z-index: 20;
+}
+
+/* App UI */
+.app-bar {
+  padding: 36px 14px 10px;
+  background: #0c0c0c;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.app-title { font-size: 13px; font-weight: 800; letter-spacing: 0.18em; color: white; }
+.app-icons { display: flex; gap: 14px; }
+.app-icon { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.25); }
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px 6px;
+  background: #0c0c0c;
+}
+.tab {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.38);
+}
+.tab.on { background: #d946ef; color: white; }
+
+.feed {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  background: #1a1a1a;
+}
+
+.post {
+  position: relative;
+  overflow: hidden;
+  height: 130px;
+}
+.post::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 50%);
+}
+
+.p1 { background: linear-gradient(145deg, #3b0764, #1e1b4b 60%, #312e81); }
+.p2 { background: linear-gradient(145deg, #7c2d12, #92400e 60%, #b45309); }
+.p3 { background: linear-gradient(145deg, #064e3b, #065f46 60%, #0f766e); }
+.p4 { background: linear-gradient(145deg, #1e3a5f, #1e40af 60%, #4338ca); }
+.p5 { background: linear-gradient(145deg, #4a044e, #7e22ce 60%, #6d28d9); }
+.p6 { background: linear-gradient(145deg, #7f1d1d, #991b1b 60%, #b91c1c); }
+
+.p1::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 60%, rgba(168,85,247,0.6), transparent 65%); }
+.p2::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 30%, rgba(249,115,22,0.7), transparent 65%); }
+.p3::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.6), transparent 65%); }
+.p4::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 20% 70%, rgba(59,130,246,0.7), transparent 65%); }
+.p5::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 80% 20%, rgba(236,72,153,0.7), transparent 65%); }
+.p6::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(245,158,11,0.6), transparent 65%); }
+
+.post-foot {
+  position: absolute;
+  bottom: 6px; left: 8px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.av {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  font-size: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+}
+.meta { font-size: 8.5px; color: rgba(255,255,255,0.75); }
+
+.app-nav {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: #0c0c0c;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0 16px;
+}
+.nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-size: 7.5px; color: rgba(255,255,255,0.35);
+}
+.nav-item.on { color: #d946ef; }
+.nav-dot { width: 22px; height: 22px; border-radius: 6px; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.nav-item.on .nav-dot { background: rgba(217,70,239,0.2); }
+
+/* Location pin on post */
+.loc {
+  position: absolute;
+  top: 8px; left: 8px;
+  z-index: 10;
+  background: rgba(0,0,0,0.5);
+  border-radius: 100px;
+  padding: 3px 7px;
+  font-size: 7px;
+  color: rgba(255,255,255,0.8);
+  backdrop-filter: blur(4px);
+}
+</style>
+</head>
+<body>
+
+<!-- Blobs -->
+<div class="blob b1"></div>
+<div class="blob b2"></div>
+<div class="blob b3"></div>
+<div class="grid-bg"></div>
+
+<!-- Decorative SVG top-left -->
+<svg class="deco-tl" width="180" height="180" viewBox="0 0 180 180" fill="none">
+  <ellipse cx="70" cy="70" rx="55" ry="38" fill="#d946ef"/>
+  <ellipse cx="110" cy="100" rx="38" ry="28" fill="#7c3aed"/>
+  <circle cx="55" cy="115" r="18" fill="#06b6d4"/>
+  <line x1="70" y1="108" x2="66" y2="155" stroke="#d946ef" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="66" cy="162" r="7" fill="#d946ef"/>
+  <line x1="110" y1="128" x2="108" y2="168" stroke="#7c3aed" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="108" cy="174" r="5" fill="#7c3aed"/>
+</svg>
+
+<!-- Decorative SVG bottom-right -->
+<svg class="deco-br" width="160" height="160" viewBox="0 0 160 160" fill="none">
+  <ellipse cx="80" cy="60" rx="50" ry="35" fill="#d946ef"/>
+  <ellipse cx="110" cy="90" rx="30" ry="22" fill="#a855f7"/>
+  <circle cx="50" cy="100" r="15" fill="#e879f9"/>
+  <line x1="80" y1="95" x2="76" y2="140" stroke="#d946ef" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="76" cy="146" r="6" fill="#d946ef"/>
+</svg>
+
+<!-- Main content -->
+<div class="main">
+
+  <!-- LEFT: Brand Copy -->
+  <div class="left">
+    <div class="logo-row">
+      <img src="../logo.png" alt="Wallscape">
+      <span class="wordmark">WALLSCAPE</span>
+    </div>
+
+    <div class="badge">Street Art SNS</div>
+
+    <h1>Discover<br>the <em>Art</em><br>in Your City</h1>
+
+    <p class="sub">Find. Photograph. Share.</p>
+
+    <div class="cta">Join for Free →</div>
+
+    <p class="handle">@wallscape&nbsp;&nbsp;·&nbsp;&nbsp;wallscape.app</p>
+  </div>
+
+  <!-- RIGHT: Phone mockup -->
+  <div class="right">
+    <div class="phone-glow"></div>
+    <div class="phone">
+      <img src="./ss-feed.png" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;">
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
