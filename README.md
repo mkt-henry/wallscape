@@ -193,3 +193,33 @@ notifications FK(user_id, actor_id, post_id)
 ## 라이센스
 
 MIT
+
+## Discord daily overview
+
+Migration `020_discord_daily_overview.sql` adds a scheduled Discord activity summary.
+It runs every day at `00:00 UTC`, which is `09:00 Asia/Seoul`.
+
+Set the overview Discord webhook URL in Supabase SQL Editor:
+
+```sql
+update discord_config
+set value = 'https://discord.com/api/webhooks/<id>/<token>'
+where key = 'webhook_overview';
+```
+
+Send a manual test message:
+
+```sql
+select public._discord_notify_daily_overview();
+```
+
+Change the delivery time by replacing the cron expression. Supabase cron uses UTC:
+
+```sql
+select cron.unschedule('wallscape-discord-daily-overview');
+select cron.schedule(
+  'wallscape-discord-daily-overview',
+  '0 0 * * *',
+  $$select public._discord_notify_daily_overview();$$
+);
+```
